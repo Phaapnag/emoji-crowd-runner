@@ -41,30 +41,28 @@ export class GateSpawner {
   }
   
   spawnGates(playerZ: number) {
-    // Initial spawn: only spawn 3 groups ahead ONCE at start
+    // Initial spawn: only spawn 1 group at start
     if (!this.initialSpawned) {
-      console.log('[GateSpawner] Doing initial spawn of 3 groups')
-      for (let i = 0; i < 3; i++) {
-        this.spawnGateGroup()
-      }
+      console.log('[GateSpawner] Doing initial spawn of 1 group')
+      this.spawnGateGroup()
       this.initialSpawned = true
       this.lastPlayerZ = playerZ
       console.log('[GateSpawner] Initial spawn done, lastSpawnZ:', this.lastSpawnZ)
       return
     }
     
-    // After initial spawn: spawn every 40 units traveled
-    // playerZ gets more negative as we go forward
-    const distanceTraveled = Math.abs(this.lastPlayerZ - playerZ)
+    // After initial spawn: only spawn when player has PASSED the last gate group
+    // playerZ gets more negative as we go forward, so we check if playerZ > lastSpawnZ + buffer
+    const hasPassedGate = playerZ > this.lastSpawnZ + 10
     
-    console.log('[GateSpawner] distanceTraveled:', distanceTraveled, 'lastPlayerZ:', this.lastPlayerZ, 'playerZ:', playerZ)
+    console.log('[GateSpawner] playerZ:', playerZ, 'lastSpawnZ:', this.lastSpawnZ, 'hasPassed:', hasPassedGate)
     
-    if (distanceTraveled >= 80) {
+    if (hasPassedGate) {
       console.log('[GateSpawner] ✓ Spawning new gate group!')
       this.spawnGateGroup()
       this.lastPlayerZ = playerZ
     } else {
-      console.log('[GateSpawner] ✗ Not enough distance yet')
+      console.log('[GateSpawner] ✗ Has not passed last gate yet')
     }
   }
   
