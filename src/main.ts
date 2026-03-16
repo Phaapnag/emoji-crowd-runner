@@ -108,17 +108,39 @@ document.addEventListener('click', () => {
 // Touch right half = move right (constant speed)
 // Release = stop
 
+// Touch gesture handling
+let touchStartY = 0
+let touchStartX = 0
+
 document.addEventListener('touchstart', (e) => {
   if (gameOver || gameWon) {
     location.reload()
     return
   }
+  
+  // Record touch start position for swipe detection
+  touchStartY = e.touches[0].clientY
+  touchStartX = e.touches[0].clientX
+  
   // Prevent default to stop browser touch behavior
   e.preventDefault()
   handleTouch(e.touches[0].clientX)
 }, { passive: false })
 
 document.addEventListener('touchmove', (e) => {
+  // Check for swipe up gesture
+  const deltaY = touchStartY - e.touches[0].clientY
+  const deltaX = Math.abs(touchStartX - e.touches[0].clientX)
+  
+  // If swiped up more than 50px and not much horizontal movement
+  if (deltaY > 50 && deltaX < 30) {
+    // Start battle if in end zone!
+    if (inEndZone && !inBattle && !gameOver && !gameWon) {
+      console.log('[Touch] Swipe up - Starting battle!')
+      inBattle = true
+    }
+  }
+  
   e.preventDefault()
   handleTouch(e.touches[0].clientX)
 }, { passive: false })
@@ -291,17 +313,15 @@ function animate() {
     const enemyCount = enemyCrowd.getCount()
     
     if (!inBattle) {
-      // Just entered battle zone - slow down!
-      speed = speed * 0.3
+      // Waiting for swipe up to start battle
+      // Show instruction
+      scoreEl.textContent = `⚔️ 向上掃開始戰鬥! 👥${myCount} vs 💀${enemyCount}`
       
-      // Start battle when close enough
+      // Check for auto-start if close enough
       if (enemyCrowd.hasReachedEnemyZone(playerZ)) {
         inBattle = true
-        console.log('[Battle] Started! My:', myCount, 'Enemy:', enemyCount)
       }
-    }
-    
-    if (inBattle) {
+    } else {
       // Battle in progress - slow movement
       speed = 0.05
       
@@ -335,12 +355,9 @@ function animate() {
           scoreEl.style.color = '#00ff00'
         }
       }
-    } else {
-      // Approaching - show count
-      scoreEl.textContent = `⚔️ 接近中! 👥${myCount} vs 💀${enemyCount}`
     }
   }
-  
+   
   // Stop spawning when in end zone
   if (inEndZone) {
     // Don't spawn new obstacles/gates in end zone

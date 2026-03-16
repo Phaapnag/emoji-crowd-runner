@@ -51,13 +51,6 @@ export class EnemyCrowd {
         offset: Math.random() * Math.PI * 2
       })
       
-      this.positions.push({
-        x,
-        z,
-        type,
-        offset: Math.random() * Math.PI * 2
-      })
-      
       const material = new THREE.MeshStandardMaterial({
         color: this.colors[type],
         roughness: 0.5,
