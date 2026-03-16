@@ -3,7 +3,7 @@ import * as THREE from 'three'
 export type EnemyType = 'bomb' | 'skull' | 'ghost'
 
 export class EnemyCrowd {
-  private scene: THREE.Scene
+  private scene!: THREE.Scene
   private meshes: THREE.Mesh[] = []
   private count = 0
   private positions: { x: number, z: number, type: EnemyType, offset: number }[] = []
@@ -13,16 +13,16 @@ export class EnemyCrowd {
     ghost: 0x4a044e     // Purple
   }
   
-  // End zone Z position (negative because we go into negative Z)
-  private readonly enemyZoneZ = -1100
-  private readonly crowdZoneZ = -1050
+  // Current spawn position (set when spawning)
+  private spawnZ = -1000
   
   constructor(scene: THREE.Scene) {
     this.scene = scene
   }
   
   // Initialize enemy crowd with random count
-  spawn(difficulty: number = 1) {
+  // If playerZ provided, spawn relative to player
+  spawn(difficulty: number = 1, playerZ: number = 0) {
     // Clear existing
     this.clear()
     
@@ -32,13 +32,16 @@ export class EnemyCrowd {
     
     const geometry = new THREE.BoxGeometry(0.3, 0.3, 0.3)
     
+    // Spawn in front of player - use fixed offset
+    this.spawnZ = playerZ - 50  // 50 units ahead of player
+    
     for (let i = 0; i < this.count; i++) {
       const types: EnemyType[] = ['bomb', 'skull', 'ghost']
       const type = types[Math.floor(Math.random() * types.length)]
       
       // Spread out in a line/area ahead of player
       const x = (Math.random() - 0.5) * 12  // -6 to +6 (wider than player lane)
-      const z = this.enemyZoneZ + (Math.random() - 0.5) * 10  // Slight variation
+      const z = this.spawnZ + (Math.random() - 0.5) * 10  // Slight variation around spawnZ
       
       this.positions.push({
         x,
@@ -63,7 +66,7 @@ export class EnemyCrowd {
       this.meshes.push(mesh)
     }
     
-    console.log('[EnemyCrowd] Spawned', this.count, 'enemies at z ~', this.enemyZoneZ)
+    console.log('[EnemyCrowd] Spawned', this.count, 'enemies at z ~', this.spawnZ)
   }
   
   // Get enemy count
@@ -73,29 +76,26 @@ export class EnemyCrowd {
   
   // Get enemy zone Z position
   getEnemyZoneZ(): number {
-    return this.enemyZoneZ
+    return this.spawnZ
   }
   
-  // Check if player has reached enemy zone (playerZ is negative)
+  // Check if player has reached enemy zone
   hasReachedEnemyZone(playerZ: number): boolean {
-    return playerZ <= this.crowdZoneZ
+    // Player reaches enemy when they're within 30 units
+    return playerZ <= this.spawnZ + 30
   }
   
   // Battle: compare with player crowd
-  // Returns: 'win' | 'lose' | 'continue'
   battle(myCount: number): { result: 'win' | 'lose', remainingCount: number } {
     if (this.count === 0) {
-      // Already defeated
       return { result: 'win', remainingCount: myCount }
     }
     
     if (myCount >= this.count) {
-      // Win! Remaining = myCount - enemyCount
       const remaining = myCount - this.count
       this.clear()
       return { result: 'win', remainingCount: remaining }
     } else {
-      // Lose!
       this.clear()
       return { result: 'lose', remainingCount: 0 }
     }

@@ -258,16 +258,17 @@ function animate() {
   
   // ===== END ZONE LOGIC =====
   // Check if player has reached end zone (using distance, not Z position)
+  const playerZ = player.mesh.position.z
   
   // Trigger end zone when distance >= END_ZONE_DISTANCE
   if (!endZoneTriggered && distance >= END_ZONE_DISTANCE) {
-    console.log('[EndZone] Player reached end zone! distance:', distance)
+    console.log('[EndZone] Player reached end zone! distance:', distance, 'playerZ:', playerZ)
     endZoneTriggered = true
     inEndZone = true
     
-    // Spawn enemy crowd
+    // Spawn enemy crowd - spawn at a position relative to player
     const difficulty = Math.min(1.5, 1 + (score / 2000))  // Difficulty scales with score
-    enemyCrowd.spawn(difficulty)
+    enemyCrowd.spawn(difficulty, playerZ)
     console.log('[EndZone] Enemy count:', enemyCrowd.getCount(), 'Enemy zone Z:', enemyCrowd.getEnemyZoneZ())
     
     // Update UI to show battle mode
@@ -277,7 +278,6 @@ function animate() {
   
   // Update enemy crowd if in end zone
   if (inEndZone && !gameOver && !gameWon) {
-    const playerZ = player.mesh.position.z
     enemyCrowd.update(Date.now() * 0.001)
     
     // Debug: show enemy info in UI
@@ -362,9 +362,6 @@ function animate() {
   camera.position.y = 5
   camera.lookAt(0, 0, player.mesh.position.z)
   
-  // Get player Z for debug
-  const playerZ = player.mesh.position.z
-  
   // Score with crowd count
   distance += speed
   score = Math.floor(distance) + coins * 10
@@ -375,7 +372,6 @@ function animate() {
   
   // Add enemy debug info if in end zone
   if (inEndZone && !gameOver && !gameWon) {
-    const playerZ = player.mesh.position.z
     debugInfo += ` | EN:${enemyCrowd.getCount()} EZ:${enemyCrowd.getEnemyZoneZ()} PZ:${Math.floor(playerZ)}`
   }
   
