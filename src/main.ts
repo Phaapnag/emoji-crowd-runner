@@ -63,6 +63,7 @@ let gameWon = false
 const END_ZONE_DISTANCE = 900  // Trigger end zone when distance >= 900
 let inEndZone = false
 let endZoneTriggered = false
+let inBattle = false  // Battle mode - crowd vs enemies
 
 // UI elements
 const scoreEl = document.getElementById('score')!
@@ -284,41 +285,58 @@ function animate() {
     scoreEl.textContent = `⚔️ 終點戰! 我方:${crowdManager.getRemainingCount()} 敵人:${enemyCrowd.getCount()} EZ:${enemyZ} PZ:${playerZ}`
   }
   
-  // Update enemy crowd if in end zone
+  // Battle mode: when player reaches enemy zone
   if (inEndZone && !gameOver && !gameWon) {
-    try {
-      enemyCrowd.update(Date.now() * 0.001)
-      console.log('[EndZone] EN:', enemyCrowd.getCount(), 'EZ:', enemyCrowd.getEnemyZoneZ(), 'PZ:', playerZ)
-    } catch (e) {
-      console.error('[EndZone] Error:', e)
+    const myCount = crowdManager.getRemainingCount()
+    const enemyCount = enemyCrowd.getCount()
+    
+    if (!inBattle) {
+      // Just entered battle zone - slow down!
+      speed = speed * 0.3
+      
+      // Start battle when close enough
+      if (enemyCrowd.hasReachedEnemyZone(playerZ)) {
+        inBattle = true
+        console.log('[Battle] Started! My:', myCount, 'Enemy:', enemyCount)
+      }
     }
     
-    // Check if player has reached enemy zone for battle
-    if (enemyCrowd.hasReachedEnemyZone(playerZ)) {
-      // SLOW DOWN when approaching enemy zone!
-      speed = speed * 0.5
+    if (inBattle) {
+      // Battle in progress - slow movement
+      speed = 0.05
       
-      const myCount = crowdManager.getRemainingCount()
-      const battleResult = enemyCrowd.battle(myCount)
+      // Update enemy animation
+      enemyCrowd.update(Date.now() * 0.001)
       
-      if (battleResult.result === 'win') {
-        // Victory!
-        gameWon = true
-        crowdManager.rebuild(battleResult.remainingCount)
-        scoreEl.innerHTML = `🎉 勝利!<br>剩餘: ${battleResult.remainingCount}<br>Score: ${score}<br><small>Tap to restart</small>`
-        scoreEl.style.color = '#00ff00'
-      } else {
-        // Defeat
-        gameOver = true
-        crowdManager.rebuild(0)
-        scoreEl.innerHTML = `💀 敗北!<br>敵人: ${enemyCrowd.getCount()}<br>我方: ${myCount}<br><small>Tap to restart</small>`
-        scoreEl.style.color = '#ff0000'
+      // Battle UI
+      scoreEl.textContent = `⚔️ 決戰! 👥${myCount} vs 💀${enemyCount}`
+      
+      // Battle logic: every ~30 frames, one enemy and one crowd member eliminate each other
+      if (Math.random() < 0.03 && myCount > 0 && enemyCount > 0) {
+        // Both sides lose one
+        crowdManager.rebuild(Math.max(0, myCount - 1))
+        enemyCrowd.eliminateOne()
+        
+        const newMyCount = crowdManager.getRemainingCount()
+        const newEnemyCount = enemyCrowd.getCount()
+        
+        console.log('[Battle] Clash! My:', newMyCount, 'Enemy:', newEnemyCount)
+        
+        if (newMyCount <= 0) {
+          // Defeat!
+          gameOver = true
+          scoreEl.innerHTML = `💀 敗北!<br>敵人: ${newEnemyCount}<br><small>Tap to restart</small>`
+          scoreEl.style.color = '#ff0000'
+        } else if (newEnemyCount <= 0) {
+          // Victory!
+          gameWon = true
+          scoreEl.innerHTML = `🎉 勝利!<br>剩餘: ${newMyCount}<br>Score: ${score}<br><small>Tap to continue</small>`
+          scoreEl.style.color = '#00ff00'
+        }
       }
     } else {
-      // Show battle UI while approaching
-      const myCount = crowdManager.getRemainingCount()
-      const enemyCount = enemyCrowd.getCount()
-      scoreEl.innerHTML = `⚔️ 終點戰!<br>👥 我方: ${myCount}<br>💀 敵人: ${enemyCount}<br>接近中...`
+      // Approaching - show count
+      scoreEl.textContent = `⚔️ 接近中! 👥${myCount} vs 💀${enemyCount}`
     }
   }
   
