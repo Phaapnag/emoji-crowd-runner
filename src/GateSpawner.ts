@@ -53,8 +53,8 @@ export class GateSpawner {
     }
     
     // After initial spawn: spawn every 20 units traveled
-    // playerZ gets more negative as we go forward, so lastPlayerZ - playerZ is positive
-    const distanceTraveled = this.lastPlayerZ - playerZ
+    // playerZ gets more negative as we go forward
+    const distanceTraveled = Math.abs(this.lastPlayerZ - playerZ)
     
     console.log('[GateSpawner] distanceTraveled:', distanceTraveled, 'lastPlayerZ:', this.lastPlayerZ, 'playerZ:', playerZ)
     
