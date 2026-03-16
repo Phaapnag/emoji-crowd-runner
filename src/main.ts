@@ -367,14 +367,15 @@ function animate() {
   const crowdCount = crowdManager.getRemainingCount()
   
   // Build debug info (always show basic info)
-  let debugInfo = `👥 ${crowdCount} | 🛒 ${score} 🪙 ${coins} ❤️ ${lives} | D:${Math.floor(distance)} E:${endZoneTriggered}`
+  const crowdCount = crowdManager.getRemainingCount()
+  let debugInfo = `👥 ${crowdCount} | 🛒 ${score} 🪙 ${coins} ❤️ ${lives} | D:${Math.floor(distance)} E:${endZoneTriggered} inEZ:${inEndZone}`
   
   // Add enemy debug info if in end zone
   if (inEndZone && !gameOver && !gameWon) {
     try {
       debugInfo += ` | EN:${enemyCrowd.getCount()} EZ:${enemyCrowd.getEnemyZoneZ()} PZ:${Math.floor(playerZ)}`
     } catch (e) {
-      console.error('[Debug] Error:', e)
+      debugInfo += ` | ERROR getting enemy info`
     }
   }
   
