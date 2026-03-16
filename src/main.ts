@@ -280,7 +280,8 @@ function animate() {
     
     // Update UI to show battle mode
     scoreEl.style.color = '#ff0000'
-    scoreEl.textContent = `⚔️ 終點戰! 我方:${crowdManager.getRemainingCount()} 敵人:${enemyCrowd.getCount()}`
+    const enemyZ = enemyCrowd.getEnemyZoneZ()
+    scoreEl.textContent = `⚔️ 終點戰! 我方:${crowdManager.getRemainingCount()} 敵人:${enemyCrowd.getCount()} EZ:${enemyZ} PZ:${playerZ}`
   }
   
   // Update enemy crowd if in end zone

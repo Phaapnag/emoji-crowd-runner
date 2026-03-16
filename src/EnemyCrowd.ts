@@ -79,10 +79,10 @@ export class EnemyCrowd {
     return this.spawnZ
   }
   
-  // Check if player has reached enemy zone - trigger immediately!
+  // Check if player has reached enemy zone - require player to actually get close!
   hasReachedEnemyZone(playerZ: number): boolean {
-    // Trigger immediately since enemy is right in front
-    return true
+    // Player must be within 5 units of enemy to trigger battle
+    return playerZ <= this.spawnZ + 5
   }
   
   // Battle: compare with player crowd
