@@ -278,13 +278,12 @@ function animate() {
   
   // Update enemy crowd if in end zone
   if (inEndZone && !gameOver && !gameWon) {
-    enemyCrowd.update(Date.now() * 0.001)
-    
-    // Debug: show enemy info in UI
-    const enemyInfo = inEndZone ? ` | EN:${enemyCrowd.getCount()} EZ:${enemyCrowd.getEnemyZoneZ()} PZ:${Math.floor(playerZ)}` : ''
-    const currentCrowdCount = crowdManager.getRemainingCount()
-    scoreEl.textContent = `👥 ${currentCrowdCount} | 🛒 ${score} 🪙 ${coins} ❤️ ${lives} | D:${Math.floor(distance)} E:${endZoneTriggered} Z:${Math.floor(-playerZ)}${enemyInfo}`
-    console.log('[EndZone] playerZ:', playerZ, 'enemyZoneZ:', enemyCrowd.getEnemyZoneZ(), 'hasReached:', enemyCrowd.hasReachedEnemyZone(playerZ))
+    try {
+      enemyCrowd.update(Date.now() * 0.001)
+      console.log('[EndZone] EN:', enemyCrowd.getCount(), 'EZ:', enemyCrowd.getEnemyZoneZ(), 'PZ:', playerZ)
+    } catch (e) {
+      console.error('[EndZone] Error:', e)
+    }
     
     // Check if player has reached enemy zone for battle
     if (enemyCrowd.hasReachedEnemyZone(playerZ)) {
@@ -367,12 +366,16 @@ function animate() {
   score = Math.floor(distance) + coins * 10
   const crowdCount = crowdManager.getRemainingCount()
   
-  // Build debug info
+  // Build debug info (always show basic info)
   let debugInfo = `👥 ${crowdCount} | 🛒 ${score} 🪙 ${coins} ❤️ ${lives} | D:${Math.floor(distance)} E:${endZoneTriggered}`
   
   // Add enemy debug info if in end zone
   if (inEndZone && !gameOver && !gameWon) {
-    debugInfo += ` | EN:${enemyCrowd.getCount()} EZ:${enemyCrowd.getEnemyZoneZ()} PZ:${Math.floor(playerZ)}`
+    try {
+      debugInfo += ` | EN:${enemyCrowd.getCount()} EZ:${enemyCrowd.getEnemyZoneZ()} PZ:${Math.floor(playerZ)}`
+    } catch (e) {
+      console.error('[Debug] Error:', e)
+    }
   }
   
   scoreEl.textContent = debugInfo
