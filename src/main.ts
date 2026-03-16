@@ -311,8 +311,9 @@ function animate() {
       // Battle UI
       scoreEl.textContent = `⚔️ 決戰! 👥${myCount} vs 💀${enemyCount}`
       
-      // Battle logic: every ~30 frames, one enemy and one crowd member eliminate each other
-      if (Math.random() < 0.03 && myCount > 0 && enemyCount > 0) {
+      // Battle logic: every few frames, one enemy and one crowd member eliminate each other
+      // Faster clash rate!
+      if (Math.random() < 0.1 && myCount > 0 && enemyCount > 0) {
         // Both sides lose one
         crowdManager.rebuild(Math.max(0, myCount - 1))
         enemyCrowd.eliminateOne()
