@@ -60,7 +60,7 @@ let gameOver = false
 let gameWon = false
 
 // End zone settings
-const END_ZONE_Z = 1000  // When to trigger end zone
+const END_ZONE_DISTANCE = 500  // Trigger end zone when distance >= 500
 let inEndZone = false
 let endZoneTriggered = false
 
@@ -252,12 +252,11 @@ function animate() {
   }
   
   // ===== END ZONE LOGIC =====
-  // Check if player has reached end zone
-  const playerZ = player.mesh.position.z
+  // Check if player has reached end zone (using distance, not Z position)
   
-  // Trigger end zone when reaching Z = -END_ZONE_Z (negative because we go forward into negative Z)
-  if (!endZoneTriggered && playerZ <= -END_ZONE_Z) {
-    console.log('[EndZone] Player reached end zone!')
+  // Trigger end zone when distance >= END_ZONE_DISTANCE
+  if (!endZoneTriggered && distance >= END_ZONE_DISTANCE) {
+    console.log('[EndZone] Player reached end zone! distance:', distance)
     endZoneTriggered = true
     inEndZone = true
     
@@ -272,6 +271,7 @@ function animate() {
   
   // Update enemy crowd if in end zone
   if (inEndZone && !gameOver && !gameWon) {
+    const playerZ = player.mesh.position.z
     enemyCrowd.update(Date.now() * 0.001)
     
     // Check if player has reached enemy zone for battle

@@ -13,9 +13,9 @@ export class EnemyCrowd {
     ghost: 0x4a044e     // Purple
   }
   
-  // End zone Z position
-  private readonly enemyZoneZ = 1100
-  private readonly crowdZoneZ = 1050
+  // End zone Z position (negative because we go into negative Z)
+  private readonly enemyZoneZ = -1100
+  private readonly crowdZoneZ = -1050
   
   constructor(scene: THREE.Scene) {
     this.scene = scene
@@ -76,9 +76,9 @@ export class EnemyCrowd {
     return this.enemyZoneZ
   }
   
-  // Check if player has reached enemy zone
+  // Check if player has reached enemy zone (playerZ is negative)
   hasReachedEnemyZone(playerZ: number): boolean {
-    return playerZ >= this.crowdZoneZ
+    return playerZ <= this.crowdZoneZ
   }
   
   // Battle: compare with player crowd
