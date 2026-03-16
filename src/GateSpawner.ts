@@ -98,21 +98,6 @@ export class GateSpawner {
     this.activateGate(leftX, type1, effect1.text, this.lastSpawnZ)
     this.activateGate(rightX, type2, effect2.text, this.lastSpawnZ)
   }
-    
-    // Spawn 2 gates
-    const leftPositions = [-4, -2]
-    const rightPositions = [2, 4]
-    const leftX = leftPositions[Math.floor(Math.random() * leftPositions.length)]
-    const rightX = rightPositions[Math.floor(Math.random() * rightPositions.length)]
-    
-    const type1 = Gate.getRandomType()
-    const type2 = Gate.getRandomType()
-    const effect1 = Gate.generateEffect(type1, 0)
-    const effect2 = Gate.generateEffect(type2, 0)
-    
-    this.activateGate(leftX, type1, effect1.text, this.lastSpawnZ)
-    this.activateGate(rightX, type2, effect2.text, this.lastSpawnZ)
-  }
   
   private activateGate(x: number, type: GateType, effectText: string, z: number) {
     const gate = this.gates.find(g => !g.active)
