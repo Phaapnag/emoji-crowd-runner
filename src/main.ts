@@ -60,7 +60,7 @@ let gameOver = false
 let gameWon = false
 
 // End zone settings
-const END_ZONE_DISTANCE = 500  // Trigger end zone when distance >= 500
+const END_ZONE_DISTANCE = 800  // Trigger end zone when distance >= 800 (about 800+ score)
 let inEndZone = false
 let endZoneTriggered = false
 
