@@ -148,8 +148,9 @@ export class Gate {
       ctx.lineWidth = 8
       ctx.strokeRect(4, 4, 248, 120)
       
-      // White text for maximum contrast
-      ctx.fillStyle = '#ffffff'
+      // White text with COLOR for maximum contrast
+      const colorHex = '#' + color.toString(16).padStart(6, '0')
+      ctx.fillStyle = colorHex
       ctx.font = 'bold 80px Arial'
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'

@@ -39,12 +39,16 @@ export class GateSpawner {
   }
   
   spawnGates(playerZ: number) {
+    console.log('[GateSpawner] spawnGates called, playerZ:', playerZ, 'initialSpawned:', this.initialSpawned, 'lastSpawnZ:', this.lastSpawnZ)
+    
     // Initial spawn: only spawn 3 groups ahead ONCE at start
     if (!this.initialSpawned) {
+      console.log('[GateSpawner] Doing initial spawn of 3 groups')
       for (let i = 0; i < 3; i++) {
         this.spawnGateGroup()
       }
       this.initialSpawned = true
+      console.log('[GateSpawner] Initial spawn done, lastSpawnZ:', this.lastSpawnZ)
       return
     }
     
@@ -57,14 +61,36 @@ export class GateSpawner {
   }
   
   private spawnGateGroup() {
+    console.log('[GateSpawner] spawnGateGroup called, lastSpawnZ before:', this.lastSpawnZ)
+    
     // Move spawn position further
     this.lastSpawnZ -= 20 // Fixed distance between gates
     
+    console.log('[GateSpawner] Spawning at z:', this.lastSpawnZ)
+    
     // Check obstacle collision
     if (this.obstacleSpawner && this.obstacleSpawner.isTooCloseToObstacle(this.lastSpawnZ)) {
+      console.log('[GateSpawner] Too close to obstacle, skipping')
       // Skip this position, try next
       this.lastSpawnZ -= 10
     }
+    
+    // Spawn 2 gates
+    const leftPositions = [-4, -2]
+    const rightPositions = [2, 4]
+    const leftX = leftPositions[Math.floor(Math.random() * leftPositions.length)]
+    const rightX = rightPositions[Math.floor(Math.random() * rightPositions.length)]
+    
+    const type1 = Gate.getRandomType()
+    const type2 = Gate.getRandomType()
+    const effect1 = Gate.generateEffect(type1, 0)
+    const effect2 = Gate.generateEffect(type2, 0)
+    
+    console.log('[GateSpawner] Activating gates at x:', leftX, rightX, 'z:', this.lastSpawnZ)
+    
+    this.activateGate(leftX, type1, effect1.text, this.lastSpawnZ)
+    this.activateGate(rightX, type2, effect2.text, this.lastSpawnZ)
+  }
     
     // Spawn 2 gates
     const leftPositions = [-4, -2]

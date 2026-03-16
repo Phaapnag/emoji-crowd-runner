@@ -184,7 +184,7 @@ function animate() {
   levelSpawner.update(player.mesh.position.z)
   
   // Update gates
-  gateSpawner.update(player.mesh.position.z, Date.now(), speed)
+  gateSpawner.update(player.mesh.position.z)
   
   // Update crowd - pass player X and Z position for following
   crowdManager.update(player.mesh.position.x, player.mesh.position.z, Date.now() * 0.001)
