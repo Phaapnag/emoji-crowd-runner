@@ -268,6 +268,7 @@ function animate() {
     // Spawn enemy crowd
     const difficulty = Math.min(1.5, 1 + (score / 2000))  // Difficulty scales with score
     enemyCrowd.spawn(difficulty)
+    console.log('[EndZone] Enemy count:', enemyCrowd.getCount(), 'Enemy zone Z:', enemyCrowd.getEnemyZoneZ())
     
     // Update UI to show battle mode
     scoreEl.style.color = '#ff0000'
@@ -278,6 +279,12 @@ function animate() {
   if (inEndZone && !gameOver && !gameWon) {
     const playerZ = player.mesh.position.z
     enemyCrowd.update(Date.now() * 0.001)
+    
+    // Debug: show enemy info in UI
+    const enemyInfo = inEndZone ? ` | EN:${enemyCrowd.getCount()} EZ:${enemyCrowd.getEnemyZoneZ()} PZ:${Math.floor(playerZ)}` : ''
+    const currentCrowdCount = crowdManager.getRemainingCount()
+    scoreEl.textContent = `👥 ${currentCrowdCount} | 🛒 ${score} 🪙 ${coins} ❤️ ${lives} | D:${Math.floor(distance)} E:${endZoneTriggered} Z:${Math.floor(-playerZ)}${enemyInfo}`
+    console.log('[EndZone] playerZ:', playerZ, 'enemyZoneZ:', enemyCrowd.getEnemyZoneZ(), 'hasReached:', enemyCrowd.hasReachedEnemyZone(playerZ))
     
     // Check if player has reached enemy zone for battle
     if (enemyCrowd.hasReachedEnemyZone(playerZ)) {
@@ -362,8 +369,17 @@ function animate() {
   distance += speed
   score = Math.floor(distance) + coins * 10
   const crowdCount = crowdManager.getRemainingCount()
-  // Debug: show distance and end zone status
-  scoreEl.textContent = `👥 ${crowdCount} | 🛒 ${score} 🪙 ${coins} ❤️ ${lives} | D:${Math.floor(distance)} E:${endZoneTriggered} Z:${Math.floor(-playerZ)}`
+  
+  // Build debug info
+  let debugInfo = `👥 ${crowdCount} | 🛒 ${score} 🪙 ${coins} ❤️ ${lives} | D:${Math.floor(distance)} E:${endZoneTriggered}`
+  
+  // Add enemy debug info if in end zone
+  if (inEndZone && !gameOver && !gameWon) {
+    const playerZ = player.mesh.position.z
+    debugInfo += ` | EN:${enemyCrowd.getCount()} EZ:${enemyCrowd.getEnemyZoneZ()} PZ:${Math.floor(playerZ)}`
+  }
+  
+  scoreEl.textContent = debugInfo
   
   renderer.render(scene, camera)
 }
