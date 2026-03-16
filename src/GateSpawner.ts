@@ -35,7 +35,8 @@ export class GateSpawner {
         x: 0,
         z: 0,
         active: false,
-        triggered: false
+        triggered: false,
+        effectValue: 0
       })
     }
   }
@@ -93,13 +94,13 @@ export class GateSpawner {
     const effect1 = Gate.generateEffect(type1, 0)
     const effect2 = Gate.generateEffect(type2, 0)
     
-    console.log('[GateSpawner] Activating gates at x:', leftX, rightX, 'z:', this.lastSpawnZ)
+    console.log('[GateSpawner] Activating gates at x:', leftX, rightX, 'z:', this.lastSpawnZ, 'effects:', effect1.text, effect2.text)
     
-    this.activateGate(leftX, type1, effect1.text, this.lastSpawnZ)
-    this.activateGate(rightX, type2, effect2.text, this.lastSpawnZ)
+    this.activateGate(leftX, type1, effect1.text, this.lastSpawnZ, effect1.value)
+    this.activateGate(rightX, type2, effect2.text, this.lastSpawnZ, effect2.value)
   }
   
-  private activateGate(x: number, type: GateType, effectText: string, z: number) {
+  private activateGate(x: number, type: GateType, effectText: string, z: number, effectValue: number) {
     const gate = this.gates.find(g => !g.active)
     if (gate) {
       this.scene.remove(gate.mesh)
@@ -113,11 +114,12 @@ export class GateSpawner {
       gate.z = z
       gate.active = true
       gate.triggered = false
+      gate.effectValue = effectValue
       this.gateEffects.set(z, effectText)
     }
   }
   
-  checkCollision(playerMesh: THREE.Group): GateType | null {
+  checkCollision(playerMesh: THREE.Group): { type: GateType, value: number } | null {
     const playerPos = playerMesh.position
     
     for (const gate of this.gates) {
@@ -132,7 +134,7 @@ export class GateSpawner {
           this.lastTriggeredZ = gate.z
           // Keep lastGateZ for any other logic that might need it
           this.lastGateZ = gate.z
-          return gate.type
+          return { type: gate.type, value: gate.effectValue }
         }
       }
     }

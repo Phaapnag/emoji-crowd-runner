@@ -224,34 +224,30 @@ function animate() {
     }
     
     // Check gate collisions - only rebuild if count actually changes
-    const gateType = gateSpawner.checkCollision(player.mesh)
-    if (gateType) {
+    const gateCollision = gateSpawner.checkCollision(player.mesh)
+    if (gateCollision) {
       const currentCount = crowdManager.getRemainingCount()
-      const newCount = applyGateEffect(currentCount, gateType)
+      const newCount = applyGateEffect(currentCount, gateCollision.type, gateCollision.value)
       if (newCount !== currentCount) {  // Only rebuild if count changes!
         crowdManager.rebuild(newCount)
       }
       scoreEl.style.color = '#ffff00' // Yellow flash
     }
   }
-  
-  // Apply gate effect to crowd count
-  // - Red: -5 to -20 (random)
-  // - Green: +2 to +5 (random)
-  // - Yellow: ×1 to ×3 (random)
-  // - Each gate spawns 2
-  function applyGateEffect(currentCount: number, type: string): number {
+
+  // Apply gate effect to crowd count (use stored value!)
+  function applyGateEffect(currentCount: number, type: string, value: number): number {
     let newCount = currentCount
     
     switch (type) {
-      case 'shopping': // Green: +2 to +5
-        newCount = currentCount + Math.floor(Math.random() * 4) + 2  // +2 to +5
+      case 'shopping': // Green: +value
+        newCount = currentCount + value
         break
-      case 'sparkle': // Yellow: ×1 to ×3
-        newCount = Math.floor(currentCount * (Math.random() * 2 + 1))  // ×1 to ×3
+      case 'sparkle': // Yellow: ×value
+        newCount = Math.floor(currentCount * value)
         break
-      case 'bomb': // Red: -5 to -20
-        newCount = currentCount - (Math.floor(Math.random() * 16) + 5)  // -5 to -20
+      case 'bomb': // Red: -value
+        newCount = currentCount - value
         break
     }
     

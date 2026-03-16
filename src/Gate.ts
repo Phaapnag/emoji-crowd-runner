@@ -9,6 +9,7 @@ export interface GateData {
   z: number
   active: boolean
   triggered: boolean
+  effectValue: number  // Store the actual effect value
 }
 
 export class Gate {
