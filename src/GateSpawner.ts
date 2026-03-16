@@ -52,13 +52,13 @@ export class GateSpawner {
       return
     }
     
-    // After initial spawn: spawn every 20 units traveled
+    // After initial spawn: spawn every 40 units traveled
     // playerZ gets more negative as we go forward
     const distanceTraveled = Math.abs(this.lastPlayerZ - playerZ)
     
     console.log('[GateSpawner] distanceTraveled:', distanceTraveled, 'lastPlayerZ:', this.lastPlayerZ, 'playerZ:', playerZ)
     
-    if (distanceTraveled >= 20) {
+    if (distanceTraveled >= 40) {
       console.log('[GateSpawner] ✓ Spawning new gate group!')
       this.spawnGateGroup()
       this.lastPlayerZ = playerZ
@@ -71,7 +71,7 @@ export class GateSpawner {
     console.log('[GateSpawner] spawnGateGroup called, lastSpawnZ before:', this.lastSpawnZ)
     
     // Move spawn position further
-    this.lastSpawnZ -= 20 // Fixed distance between gates
+    this.lastSpawnZ -= 40 // Fixed distance between gates
     
     console.log('[GateSpawner] Spawning at z:', this.lastSpawnZ)
     
