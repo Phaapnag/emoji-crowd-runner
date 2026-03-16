@@ -5,13 +5,13 @@ export class GateSpawner {
   // Gate spawning system
   private scene: THREE.Scene
   private gates: GateData[] = []
-  private lastSpawnZ = -30  // Start spawning from here
+  private lastSpawnZ = -100  // Start spawning from here (farther)
   private lastGateZ = -999  // Track last gate position (for collision)
   private lastTriggeredZ = -999  // Track last gate we triggered (for spawning)
   private gateEffects: Map<number, string> = new Map()
   private obstacleSpawner: any = null
   private initialSpawned = false  // Track if initial spawn done
-  private lastPlayerZ = 0  // Track player Z to calculate distance traveled
+  private playerZAtLastSpawn = 0  // Track player Z when last spawn happened
   
   constructor(scene: THREE.Scene) {
     this.scene = scene
@@ -46,21 +46,22 @@ export class GateSpawner {
       console.log('[GateSpawner] Doing initial spawn of 1 group')
       this.spawnGateGroup()
       this.initialSpawned = true
-      this.lastPlayerZ = playerZ
-      console.log('[GateSpawner] Initial spawn done, lastSpawnZ:', this.lastSpawnZ)
+      this.playerZAtLastSpawn = playerZ
+      console.log('[GateSpawner] Initial spawn done, currentGateZ:', this.lastSpawnZ)
       return
     }
     
-    // After initial spawn: only spawn when player has PASSED the last gate group
-    // playerZ gets more negative as we go forward, so we check if playerZ > lastSpawnZ + buffer
-    const hasPassedGate = playerZ > this.lastSpawnZ + 10
+    // After initial spawn: only spawn when player has PASSED the current gate group
+    // playerZ gets more negative as we go forward
+    // If player has moved past the current gate by 80 units, spawn next
+    const distancePastGate = this.playerZAtLastSpawn - playerZ
     
-    console.log('[GateSpawner] playerZ:', playerZ, 'lastSpawnZ:', this.lastSpawnZ, 'hasPassed:', hasPassedGate)
+    console.log('[GateSpawner] playerZ:', playerZ, 'playerZAtLastSpawn:', this.playerZAtLastSpawn, 'distancePastGate:', distancePastGate)
     
-    if (hasPassedGate) {
+    if (distancePastGate >= 80) {
       console.log('[GateSpawner] ✓ Spawning new gate group!')
       this.spawnGateGroup()
-      this.lastPlayerZ = playerZ
+      this.playerZAtLastSpawn = playerZ
     } else {
       console.log('[GateSpawner] ✗ Has not passed last gate yet')
     }
