@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import { Gate, GateType, GateData } from './Gate'
 
 export class GateSpawner {
+  // Gate spawning system
   private scene: THREE.Scene
   private gates: GateData[] = []
   private lastSpawnZ = -30  // Start spawning from here
