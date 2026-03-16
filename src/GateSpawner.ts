@@ -10,6 +10,7 @@ export class GateSpawner {
   private gateEffects: Map<number, string> = new Map()
   private obstacleSpawner: any = null
   private initialSpawned = false  // Track if initial spawn done
+  private lastPlayerZ = 0  // Track player Z to calculate distance traveled
   
   constructor(scene: THREE.Scene) {
     this.scene = scene
@@ -39,8 +40,6 @@ export class GateSpawner {
   }
   
   spawnGates(playerZ: number) {
-    console.log('[GateSpawner] spawnGates called, playerZ:', playerZ, 'initialSpawned:', this.initialSpawned, 'lastSpawnZ:', this.lastSpawnZ)
-    
     // Initial spawn: only spawn 3 groups ahead ONCE at start
     if (!this.initialSpawned) {
       console.log('[GateSpawner] Doing initial spawn of 3 groups')
@@ -48,15 +47,20 @@ export class GateSpawner {
         this.spawnGateGroup()
       }
       this.initialSpawned = true
+      this.lastPlayerZ = playerZ
       console.log('[GateSpawner] Initial spawn done, lastSpawnZ:', this.lastSpawnZ)
       return
     }
     
-    // After initial spawn: only spawn when player has moved 20+ units past last triggered gate
-    const distanceSinceLastGate = playerZ - this.lastTriggeredZ
+    // After initial spawn: only spawn when player has moved 20+ units from last spawn
+    const distanceTraveled = this.lastPlayerZ - playerZ  // Positive as playerZ becomes more negative
     
-    if (distanceSinceLastGate >= 20) {
+    console.log('[GateSpawner] distanceTraveled:', distanceTraveled, 'playerZ:', playerZ)
+    
+    if (distanceTraveled >= 20) {
+      console.log('[GateSpawner] Spawning new gate group')
       this.spawnGateGroup()
+      this.lastPlayerZ = playerZ
     }
   }
   
