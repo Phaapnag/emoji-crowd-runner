@@ -20,6 +20,9 @@ export class CrowdManager {
   // Maximum crowd size - up to 50
   private maxCrowd = 50
   
+  // Track new members that are "running" to join (spawn time)
+  private spawnTimes: number[] = []
+  
   // Check if a position overlaps with existing crowd members
   private isOverlapping(x: number, z: number): boolean {
     const minDist = 0.4  // Minimum distance between crowd members
@@ -146,7 +149,7 @@ export class CrowdManager {
       for (let i = 0; i < toAdd; i++) {
         const type = this.emojiTypes[Math.floor(Math.random() * this.emojiTypes.length)]
         
-        // Find a non-overlapping position - try multiple times
+        // Target position in the crowd
         let newX: number, newZ: number
         let attempts = 0
         do {
@@ -155,6 +158,10 @@ export class CrowdManager {
           attempts++
         } while (this.isOverlapping(newX, newZ) && attempts < 20)
         
+        // Spawn position: far behind (edge of screen) + random offset to left/right
+        const spawnX = newX + (Math.random() - 0.5) * 4  // Spread horizontally
+        const spawnZ = newZ + 15  // Start 15 units behind (will "run" forward)
+        
         this.positions.push({
           x: newX,
           z: newZ,
@@ -162,11 +169,14 @@ export class CrowdManager {
           offset: Math.random() * Math.PI * 2
         })
         
-        // Initialize prev position slightly behind target
+        // Initialize prev position at spawn point (will animate towards target)
         this.prevPositions.push({
-          x: newX,
-          z: 0.6 + newZ + 0.5  // Start slightly further back
+          x: spawnX,
+          z: spawnZ
         })
+        
+        // Track spawn time for animation
+        this.spawnTimes.push(Date.now())
         
         const material = new THREE.MeshStandardMaterial({
           color: this.colors[type],
@@ -178,6 +188,9 @@ export class CrowdManager {
         
         const mesh = new THREE.Mesh(geometry, material)
         mesh.castShadow = false
+        
+        // Start mesh at spawn position
+        mesh.position.set(spawnX, 0.125, spawnZ)
         
         this.scene.add(mesh)
         this.meshes.push(mesh)
@@ -197,6 +210,7 @@ export class CrowdManager {
         }
         this.positions.pop()
         this.prevPositions.pop()
+        this.spawnTimes.pop()
       }
       
       this.count = newCount
@@ -215,6 +229,7 @@ export class CrowdManager {
     })
     this.meshes = []
     this.positions = []
+    this.spawnTimes = []
     
     // Set new count
     this.count = positions.length
@@ -250,7 +265,6 @@ export class CrowdManager {
 
   update(playerX: number, playerZ: number, time: number) {
     const total = this.positions.length
-    const delay = 0.12
     
     for (let i = 0; i < this.positions.length; i++) {
       const mesh = this.meshes[i]
@@ -265,6 +279,13 @@ export class CrowdManager {
       // Get previous position
       const prev = this.prevPositions[i]
       
+      // Check if this is a new member (still far from target = running to join)
+      const distFromTarget = Math.abs(prev.z - targetZ)
+      const isRunning = distFromTarget > 2
+      
+      // Slower delay for "running" members, faster for joined
+      const delay = isRunning ? 0.03 : 0.12
+      
       // Lerp towards target
       const newX = prev.x + (targetX - prev.x) * delay
       const newZ = prev.z + (targetZ - prev.z) * delay
@@ -272,12 +293,15 @@ export class CrowdManager {
       // Update previous position for next frame
       this.prevPositions[i] = { x: newX, z: newZ }
       
-      // Floating animation
+      // Floating animation (more bouncing if running)
       const floatY = Math.sin(time * 3 + (pos?.offset || 0)) * 0.1
+      
+      // More bounce if running
+      const bounce = isRunning ? Math.abs(Math.sin(time * 8)) * 0.15 : 0
       
       mesh.position.set(
         newX,
-        0.3 + floatY,  // Low to ground
+        0.3 + floatY + bounce,  // Low to ground
         newZ
       )
       
