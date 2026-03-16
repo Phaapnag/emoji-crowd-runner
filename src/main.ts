@@ -60,7 +60,7 @@ let gameOver = false
 let gameWon = false
 
 // End zone settings
-const END_ZONE_DISTANCE = 800  // Trigger end zone when distance >= 800 (about 800+ score)
+const END_ZONE_DISTANCE = 900  // Trigger end zone when distance >= 900
 let inEndZone = false
 let endZoneTriggered = false
 
@@ -269,6 +269,10 @@ function animate() {
     // Spawn enemy crowd - spawn at a position relative to player
     const difficulty = Math.min(1.5, 1 + (score / 2000))  // Difficulty scales with score
     enemyCrowd.spawn(difficulty, playerZ)
+    
+    // Clear all gates when entering end zone
+    gateSpawner.clearAll()
+    
     console.log('[EndZone] Enemy count:', enemyCrowd.getCount(), 'Enemy zone Z:', enemyCrowd.getEnemyZoneZ())
     
     // Update UI to show battle mode

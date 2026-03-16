@@ -12,6 +12,7 @@ export class GateSpawner {
   private obstacleSpawner: any = null
   private initialSpawned = false  // Track if initial spawn done
   private playerZAtLastSpawn = 0  // Track player Z when last spawn happened
+  private spawningDisabled = false  // Disable spawning in end zone
   
   constructor(scene: THREE.Scene) {
     this.scene = scene
@@ -42,6 +43,11 @@ export class GateSpawner {
   }
   
   spawnGates(playerZ: number) {
+    // Don't spawn in end zone
+    if (this.spawningDisabled) {
+      return
+    }
+    
     // Initial spawn: only spawn 1 group at start
     if (!this.initialSpawned) {
       console.log('[GateSpawner] Doing initial spawn of 1 group')
@@ -156,6 +162,30 @@ export class GateSpawner {
         this.gateEffects.delete(gate.z)
       }
     }
+  }
+  
+  // Clear all gates (for end zone)
+  clearAll() {
+    for (const gate of this.gates) {
+      gate.active = false
+      gate.triggered = false
+      gate.mesh.visible = false
+    }
+    this.gateEffects.clear()
+    this.spawningDisabled = true  // Disable spawning
+  }
+  
+  // Check if there are any active gates
+  hasActiveGates(): boolean {
+    return this.gates.some(g => g.active)
+  }
+  
+  // Reset spawning for new game
+  reset() {
+    this.spawningDisabled = false
+    this.initialSpawned = false
+    this.lastSpawnZ = -100
+    this.playerZAtLastSpawn = 0
   }
   
   dispose() {
