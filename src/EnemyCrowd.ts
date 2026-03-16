@@ -30,18 +30,18 @@ export class EnemyCrowd {
     this.count = Math.floor(5 + Math.random() * 20 * difficulty)
     this.count = Math.min(30, Math.max(5, this.count))
     
-    const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5)  // Bigger!
+    const geometry = new THREE.BoxGeometry(0.8, 0.8, 0.8)  // BIG!
     
-    // Spawn in front of player - use fixed offset
-    this.spawnZ = playerZ - 30  // 30 units ahead of player (closer!)
+    // Spawn RIGHT IN FRONT of player - just 10 units ahead!
+    this.spawnZ = playerZ - 10
     
     for (let i = 0; i < this.count; i++) {
       const types: EnemyType[] = ['bomb', 'skull', 'ghost']
       const type = types[Math.floor(Math.random() * types.length)]
       
-      // Spread out in a line/area ahead of player
-      const x = (Math.random() - 0.5) * 12  // -6 to +6 (wider than player lane)
-      const z = this.spawnZ + (Math.random() - 0.5) * 10  // Slight variation around spawnZ
+      // Spread out in front of player
+      const x = (Math.random() - 0.5) * 10  // -5 to +5
+      const z = this.spawnZ + i * 0.5  // Line them up!
       
       this.positions.push({
         x,
@@ -79,10 +79,10 @@ export class EnemyCrowd {
     return this.spawnZ
   }
   
-  // Check if player has reached enemy zone
+  // Check if player has reached enemy zone - trigger immediately!
   hasReachedEnemyZone(playerZ: number): boolean {
-    // Player reaches enemy when they're within 30 units
-    return playerZ <= this.spawnZ + 30
+    // Trigger immediately since enemy is right in front
+    return true
   }
   
   // Battle: compare with player crowd

@@ -270,6 +270,9 @@ function animate() {
     const difficulty = Math.min(1.5, 1 + (score / 2000))  // Difficulty scales with score
     enemyCrowd.spawn(difficulty, playerZ)
     
+    // SLOW DOWN immediately when entering end zone!
+    speed = speed * 0.3
+    
     // Clear all gates when entering end zone
     gateSpawner.clearAll()
     
