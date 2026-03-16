@@ -287,6 +287,9 @@ function animate() {
     
     // Check if player has reached enemy zone for battle
     if (enemyCrowd.hasReachedEnemyZone(playerZ)) {
+      // SLOW DOWN when approaching enemy zone!
+      speed = speed * 0.5
+      
       const myCount = crowdManager.getRemainingCount()
       const battleResult = enemyCrowd.battle(myCount)
       
@@ -364,7 +367,6 @@ function animate() {
   // Score with crowd count
   distance += speed
   score = Math.floor(distance) + coins * 10
-  const crowdCount = crowdManager.getRemainingCount()
   
   // Build debug info (always show basic info)
   const crowdCount = crowdManager.getRemainingCount()

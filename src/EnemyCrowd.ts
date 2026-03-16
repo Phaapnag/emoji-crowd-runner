@@ -8,9 +8,9 @@ export class EnemyCrowd {
   private count = 0
   private positions: { x: number, z: number, type: EnemyType, offset: number }[] = []
   private colors: { [key: string]: number } = {
-    bomb: 0xef4444,      // Red
-    skull: 0x7f1d1d,    // Dark red
-    ghost: 0x4a044e     // Purple
+    bomb: 0xffffff,      // White
+    skull: 0xffffff,    // White
+    ghost: 0xffffff     // White
   }
   
   // Current spawn position (set when spawning)
@@ -30,10 +30,10 @@ export class EnemyCrowd {
     this.count = Math.floor(5 + Math.random() * 20 * difficulty)
     this.count = Math.min(30, Math.max(5, this.count))
     
-    const geometry = new THREE.BoxGeometry(0.3, 0.3, 0.3)
+    const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5)  // Bigger!
     
     // Spawn in front of player - use fixed offset
-    this.spawnZ = playerZ - 50  // 50 units ahead of player
+    this.spawnZ = playerZ - 30  // 30 units ahead of player (closer!)
     
     for (let i = 0; i < this.count; i++) {
       const types: EnemyType[] = ['bomb', 'skull', 'ghost']
