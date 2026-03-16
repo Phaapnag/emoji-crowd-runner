@@ -4,6 +4,7 @@ import { RoadSpawner } from './RoadSpawner'
 import { LevelSpawner } from './LevelSpawner'
 import { CrowdManager } from './CrowdManager'
 import { GateSpawner } from './GateSpawner'
+import { EnemyCrowd } from './EnemyCrowd'
 
 // Scene setup
 const scene = new THREE.Scene()
@@ -42,6 +43,7 @@ const roadSpawner = new RoadSpawner(scene)
 const levelSpawner = new LevelSpawner(scene)
 const crowdManager = new CrowdManager(scene)
 const gateSpawner = new GateSpawner(scene)
+const enemyCrowd = new EnemyCrowd(scene)
 
 // Connect gate spawner to obstacle checker
 gateSpawner.setObstacleSpawner(levelSpawner)
@@ -55,6 +57,12 @@ let speed = 0.28  // 70% of original (0.4 * 0.7)
 let speedRecoveryTimer = 0
 let invulnerableTimer = 0
 let gameOver = false
+let gameWon = false
+
+// End zone settings
+const END_ZONE_Z = 1000  // When to trigger end zone
+let inEndZone = false
+let endZoneTriggered = false
 
 // UI elements
 const scoreEl = document.getElementById('score')!
@@ -89,7 +97,7 @@ document.addEventListener('keyup', (e) => {
 
 // Click to restart (for Chrome browser)
 document.addEventListener('click', () => {
-  if (gameOver) {
+  if (gameOver || gameWon) {
     location.reload()
   }
 })
@@ -100,7 +108,7 @@ document.addEventListener('click', () => {
 // Release = stop
 
 document.addEventListener('touchstart', (e) => {
-  if (gameOver) {
+  if (gameOver || gameWon) {
     location.reload()
     return
   }
@@ -170,6 +178,14 @@ function animate() {
   requestAnimationFrame(animate)
   
   if (gameOver) {
+    enemyCrowd.update(Date.now() * 0.001)  // Still animate enemies on game over
+    renderer.render(scene, camera)
+    return
+  }
+  
+  if (gameWon) {
+    enemyCrowd.update(Date.now() * 0.001)  // Still animate on win
+    crowdManager.update(player.mesh.position.x, player.mesh.position.z, Date.now() * 0.001)
     renderer.render(scene, camera)
     return
   }
@@ -233,6 +249,60 @@ function animate() {
       }
       scoreEl.style.color = '#ffff00' // Yellow flash
     }
+  }
+  
+  // ===== END ZONE LOGIC =====
+  // Check if player has reached end zone
+  const playerZ = player.mesh.position.z
+  
+  // Trigger end zone when reaching Z = -END_ZONE_Z (negative because we go forward into negative Z)
+  if (!endZoneTriggered && playerZ <= -END_ZONE_Z) {
+    console.log('[EndZone] Player reached end zone!')
+    endZoneTriggered = true
+    inEndZone = true
+    
+    // Spawn enemy crowd
+    const difficulty = Math.min(1.5, 1 + (score / 2000))  // Difficulty scales with score
+    enemyCrowd.spawn(difficulty)
+    
+    // Update UI to show battle mode
+    scoreEl.style.color = '#ff0000'
+    scoreEl.innerHTML = `⚔️ 終點戰!<br>👥 我方: ${crowdManager.getRemainingCount()}<br>💀 敵人: ${enemyCrowd.getCount()}`
+  }
+  
+  // Update enemy crowd if in end zone
+  if (inEndZone && !gameOver && !gameWon) {
+    enemyCrowd.update(Date.now() * 0.001)
+    
+    // Check if player has reached enemy zone for battle
+    if (enemyCrowd.hasReachedEnemyZone(playerZ)) {
+      const myCount = crowdManager.getRemainingCount()
+      const battleResult = enemyCrowd.battle(myCount)
+      
+      if (battleResult.result === 'win') {
+        // Victory!
+        gameWon = true
+        crowdManager.rebuild(battleResult.remainingCount)
+        scoreEl.innerHTML = `🎉 勝利!<br>剩餘: ${battleResult.remainingCount}<br>Score: ${score}<br><small>Tap to restart</small>`
+        scoreEl.style.color = '#00ff00'
+      } else {
+        // Defeat
+        gameOver = true
+        crowdManager.rebuild(0)
+        scoreEl.innerHTML = `💀 敗北!<br>敵人: ${enemyCrowd.getCount()}<br>我方: ${myCount}<br><small>Tap to restart</small>`
+        scoreEl.style.color = '#ff0000'
+      }
+    } else {
+      // Show battle UI while approaching
+      const myCount = crowdManager.getRemainingCount()
+      const enemyCount = enemyCrowd.getCount()
+      scoreEl.innerHTML = `⚔️ 終點戰!<br>👥 我方: ${myCount}<br>💀 敵人: ${enemyCount}<br>接近中...`
+    }
+  }
+  
+  // Stop spawning when in end zone
+  if (inEndZone) {
+    // Don't spawn new obstacles/gates in end zone
   }
 
   // Apply gate effect to crowd count (use stored value!)
