@@ -52,15 +52,18 @@ export class GateSpawner {
       return
     }
     
-    // After initial spawn: only spawn when player has moved 20+ units from last spawn
-    const distanceTraveled = this.lastPlayerZ - playerZ  // Positive as playerZ becomes more negative
+    // After initial spawn: spawn every 20 units traveled
+    // playerZ gets more negative as we go forward, so lastPlayerZ - playerZ is positive
+    const distanceTraveled = this.lastPlayerZ - playerZ
     
-    console.log('[GateSpawner] distanceTraveled:', distanceTraveled, 'playerZ:', playerZ)
+    console.log('[GateSpawner] distanceTraveled:', distanceTraveled, 'lastPlayerZ:', this.lastPlayerZ, 'playerZ:', playerZ)
     
     if (distanceTraveled >= 20) {
-      console.log('[GateSpawner] Spawning new gate group')
+      console.log('[GateSpawner] ✓ Spawning new gate group!')
       this.spawnGateGroup()
       this.lastPlayerZ = playerZ
+    } else {
+      console.log('[GateSpawner] ✗ Not enough distance yet')
     }
   }
   
@@ -153,11 +156,13 @@ export class GateSpawner {
   }
   
   update(playerZ: number) {
+    console.log('[GateSpawner] update called, playerZ:', playerZ)
     this.spawnGates(playerZ)
     
     // Recycle gates behind player
     for (const gate of this.gates) {
       if (gate.active && gate.z > playerZ + 20) {
+        console.log('[GateSpawner] Recycling gate at z:', gate.z)
         gate.active = false
         gate.triggered = false
         gate.mesh.visible = false
