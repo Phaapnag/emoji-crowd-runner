@@ -177,13 +177,18 @@ updateCameraFOV()
 function animate() {
   requestAnimationFrame(animate)
   
+  // Debug log
+  console.log('[Game] distance:', distance.toFixed(1), 'score:', score, 'playerZ:', player.mesh.position.z.toFixed(1))
+  
   if (gameOver) {
+    console.log('[Game] Game Over!')
     enemyCrowd.update(Date.now() * 0.001)  // Still animate enemies on game over
     renderer.render(scene, camera)
     return
   }
   
   if (gameWon) {
+    console.log('[Game] Game Won!')
     enemyCrowd.update(Date.now() * 0.001)  // Still animate on win
     crowdManager.update(player.mesh.position.x, player.mesh.position.z, Date.now() * 0.001)
     renderer.render(scene, camera)
