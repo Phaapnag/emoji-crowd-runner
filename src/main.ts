@@ -355,11 +355,15 @@ function animate() {
   camera.position.y = 5
   camera.lookAt(0, 0, player.mesh.position.z)
   
+  // Get player Z for debug
+  const playerZ = player.mesh.position.z
+  
   // Score with crowd count
   distance += speed
   score = Math.floor(distance) + coins * 10
   const crowdCount = crowdManager.getRemainingCount()
-  scoreEl.textContent = `👥 ${crowdCount} | 🛒 ${score} 🪙 ${coins} ❤️ ${lives}`
+  // Debug: show distance and end zone status
+  scoreEl.textContent = `👥 ${crowdCount} | 🛒 ${score} 🪙 ${coins} ❤️ ${lives} | D:${Math.floor(distance)} E:${endZoneTriggered} Z:${Math.floor(-playerZ)}`
   
   renderer.render(scene, camera)
 }
