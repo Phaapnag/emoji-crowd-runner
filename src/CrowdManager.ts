@@ -5,8 +5,8 @@ export type EmojiType = 'shopping' | 'dinosaur' | 'plane' | 'bomb' | 'sparkle'
 export class CrowdManager {
   private scene: THREE.Scene
   private meshes: THREE.Mesh[] = []
-  // More crowd members - 15 for Flowers game
-  private count = 15
+  // Start from 0
+  private count = 0
   private emojiTypes: EmojiType[] = ['shopping', 'dinosaur', 'plane', 'bomb', 'sparkle']
   private positions: { x: number, z: number, type: EmojiType, offset: number }[] = []
   private colors: { [key: string]: number } = {
@@ -16,6 +16,22 @@ export class CrowdManager {
     bomb: 0xef4444,      // Red
     sparkle: 0xfacc15   // Yellow
   }
+  
+  // Maximum crowd size - up to 50
+  private maxCrowd = 50
+  
+  // Check if a position overlaps with existing crowd members
+  private isOverlapping(x: number, z: number): boolean {
+    const minDist = 0.4  // Minimum distance between crowd members
+    for (const pos of this.positions) {
+      const dx = x - pos.x
+      const dz = z - pos.z
+      if (Math.sqrt(dx * dx + dz * dz) < minDist) {
+        return true
+      }
+    }
+    return false
+  }
 
   // Store previous positions for delayed following
   private prevPositions: { x: number, z: number }[] = []
@@ -24,7 +40,7 @@ export class CrowdManager {
   private initPrevPositions() {
     this.prevPositions = this.positions.map(pos => ({
       x: pos.x,
-      z: 1.5 + pos.z
+      z: 0.6 + pos.z
     }))
   }
 
@@ -42,11 +58,11 @@ export class CrowdManager {
     for (let i = 0; i < this.count; i++) {
       const type = this.emojiTypes[i % this.emojiTypes.length]
       
-      // More spread out: wider X range, irregular Z
-      // X: -3 to +3 (wider than before)
-      // Z: staggered, not in regular rows
-      const x = (Math.random() - 0.5) * 6  // -3 to +3
-      const z = Math.random() * 3  // 0 to 3, irregular
+      // More compact: tighter X range, much tighter Z spread
+      // X: -1.5 to +1.5
+      // Z: 0 to 0.8 (very tight)
+      const x = (Math.random() - 0.5) * 3  // -1.5 to +1.5
+      const z = Math.random() * 0.8  // 0 to 0.8 (very tight)
       
       this.positions.push({
         x,
@@ -130,21 +146,26 @@ export class CrowdManager {
       for (let i = 0; i < toAdd; i++) {
         const type = this.emojiTypes[Math.floor(Math.random() * this.emojiTypes.length)]
         
-        // New positions - random but spread out
-        const x = (Math.random() - 0.5) * 6
-        const z = Math.random() * 3
+        // Find a non-overlapping position - try multiple times
+        let newX: number, newZ: number
+        let attempts = 0
+        do {
+          newX = (Math.random() - 0.5) * 3.5  // -1.75 to +1.75
+          newZ = Math.random() * 1.2  // 0 to 1.2
+          attempts++
+        } while (this.isOverlapping(newX, newZ) && attempts < 20)
         
         this.positions.push({
-          x,
-          z,
+          x: newX,
+          z: newZ,
           type,
           offset: Math.random() * Math.PI * 2
         })
         
-        // Initialize prev position for new member (at player's current Z)
+        // Initialize prev position slightly behind target
         this.prevPositions.push({
-          x: x,
-          z: 1.5 + z
+          x: newX,
+          z: 0.6 + newZ + 0.5  // Start slightly further back
         })
         
         const material = new THREE.MeshStandardMaterial({
@@ -206,7 +227,7 @@ export class CrowdManager {
       
       this.positions.push({
         x: positions[i].x,
-        z: positions[i].z - 1.5, // Offset back to original position
+        z: positions[i].z - 0.8, // Offset back to original position
         type,
         offset: Math.random() * Math.PI * 2
       })
@@ -228,9 +249,8 @@ export class CrowdManager {
   }
 
   update(playerX: number, playerZ: number, time: number) {
-    // Assign crowd members to layers based on their index (0-14 -> 5 layers)
-    const layers = 5
-    const membersPerLayer = Math.ceil(this.positions.length / layers)
+    const total = this.positions.length
+    const delay = 0.12
     
     for (let i = 0; i < this.positions.length; i++) {
       const mesh = this.meshes[i]
@@ -238,22 +258,14 @@ export class CrowdManager {
       
       const pos = this.positions[i]
       
-      // Determine which layer this member belongs to
-      const layer = Math.floor(i / membersPerLayer)
-      
-      // Layer 0: closest to player (follows fastest)
-      // Layer 4: furthest (follows slowest with most delay)
-      const delayFactors = [0.15, 0.10, 0.07, 0.05, 0.03]  // Higher = faster catch up
-      const delay = delayFactors[Math.min(layer, layers - 1)]
-      
       // Target position relative to player
       const targetX = playerX + pos.x
-      const targetZ = playerZ + 1.5 + pos.z
+      const targetZ = playerZ + 0.6 + pos.z
       
       // Get previous position
       const prev = this.prevPositions[i]
       
-      // Lerp towards target with different speeds per layer
+      // Lerp towards target
       const newX = prev.x + (targetX - prev.x) * delay
       const newZ = prev.z + (targetZ - prev.z) * delay
       
@@ -261,7 +273,7 @@ export class CrowdManager {
       this.prevPositions[i] = { x: newX, z: newZ }
       
       // Floating animation
-      const floatY = Math.sin(time * 3 + pos.offset) * 0.1
+      const floatY = Math.sin(time * 3 + (pos?.offset || 0)) * 0.1
       
       mesh.position.set(
         newX,
@@ -273,7 +285,7 @@ export class CrowdManager {
       mesh.scale.setScalar(1.0)
       
       // Gentle wobble
-      mesh.rotation.y = time * 0.5 + pos.offset
+      mesh.rotation.y = time * 0.5 + (pos?.offset || 0)
       mesh.rotation.x = time * 0.3
     }
   }
@@ -284,7 +296,7 @@ export class CrowdManager {
       const pos = this.positions[i]
       this.prevPositions[i] = {
         x: playerX + pos.x,
-        z: playerZ + 1.5 + pos.z
+        z: playerZ + 0.6 + pos.z
       }
     }
   }

@@ -17,38 +17,60 @@ export class Gate {
   
   static readonly types: GateType[] = ['shopping', 'sparkle', 'bomb']
   
-  // Effect descriptions for UI
+  // Effect descriptions for UI - show actual effect
   static getEffectText(type: GateType): string {
     switch (type) {
-      case 'shopping': return '+3'
-      case 'sparkle': return '×2'
-      case 'bomb': return '-10'
+      case 'shopping': return '+?'  // Will be set dynamically
+      case 'sparkle': return '×?'  // Will be set dynamically
+      case 'bomb': return '-?'    // Will be set dynamically
     }
   }
   
-  // Apply effect to crowd count - balanced for difficulty
-  // Max: 30, Min: 1
+  // Generate and return the actual effect for this gate instance
+  static generateEffect(type: GateType, currentCount: number): { text: string, value: number } {
+    let value: number
+    let text: string
+    
+    switch (type) {
+      case 'shopping': // +2 to +5
+        value = Math.floor(Math.random() * 4) + 2
+        text = '+' + value
+        break
+      case 'sparkle': // ×1 to ×3
+        value = Math.floor(Math.random() * 3) + 1
+        text = '×' + value
+        break
+      case 'bomb': // -5 to -20
+        value = Math.floor(Math.random() * 16) + 5
+        text = '-' + value
+        break
+    }
+    
+    return { text, value }
+  }
+  
+  // Apply effect to crowd count
+  // - Red: -5 to -20 (random)
+  // - Green: +2 to +5 (random)
+  // - Yellow: ×1 to ×3 (random)
+  // Max: 50, Min: 0
   static applyEffect(currentCount: number, type: GateType): number {
     let newCount = currentCount
     
     switch (type) {
-      case 'shopping': // +3 (was +5)
-        newCount = currentCount + 3
+      case 'shopping': // +2 to +5
+        newCount = currentCount + Math.floor(Math.random() * 4) + 2
         break
-      case 'sparkle': // ×2, but if count > 15 then +10 instead
-        if (currentCount <= 15) {
-          newCount = currentCount * 2
-        } else {
-          newCount = currentCount + 10
-        }
+      case 'sparkle': // ×1 to ×3
+        newCount = Math.floor(currentCount * (Math.random() * 2 + 1))
         break
-      case 'bomb': // -10 (min 1)
-        newCount = currentCount - 10
+      case 'bomb': // -5 to -20
+        newCount = currentCount - (Math.floor(Math.random() * 16) + 5)
         break
     }
     
-    // Clamp to [1, 30]
-    return Math.max(1, Math.min(30, newCount))
+    // Clamp to [0, 50]
+    return Math.max(0, Math.min(50, newCount))
   }
   
   // Get random gate type with weighted probability
@@ -64,8 +86,8 @@ export class Gate {
     }
   }
   
-  // Create a gate mesh
-  static createGateMesh(type: GateType): THREE.Group {
+  // Create a gate mesh with effect text on TOP
+  static createGateMesh(type: GateType, effectText: string = ''): THREE.Group {
     const group = new THREE.Group()
     
     let color: number
@@ -86,7 +108,7 @@ export class Gate {
         break
     }
     
-    // Gate frame (two pillars) - thicker now
+    // Gate frame (two pillars)
     const pillarGeo = new THREE.BoxGeometry(0.4, 3, 0.8)
     const pillarMat = new THREE.MeshStandardMaterial({
       color: color,
@@ -102,22 +124,60 @@ export class Gate {
     rightPillar.position.set(1.5, 1.5, 0)
     group.add(rightPillar)
     
-    // Top bar - thicker
+    // Top bar
     const topGeo = new THREE.BoxGeometry(3.4, 0.4, 0.8)
     const topPillar = new THREE.Mesh(topGeo, pillarMat)
     topPillar.position.set(0, 3, 0)
     group.add(topPillar)
     
-    // Effect text (as a colored box) - thicker
-    const textGeo = new THREE.BoxGeometry(1, 0.8, 0.3)
-    const textMat = new THREE.MeshStandardMaterial({
-      color: color,
-      emissive: color,
-      emissiveIntensity: 0.5
-    })
-    const textBox = new THREE.Mesh(textGeo, textMat)
-    textBox.position.set(0, 1.5, 0.4)
-    group.add(textBox)
+    // Effect text ON TOP of gate (floating above)
+    // Use sprite for text - make it more visible with dark background
+    if (effectText) {
+      const canvas = document.createElement('canvas')
+      canvas.width = 256
+      canvas.height = 128
+      const ctx = canvas.getContext('2d')!
+      
+      // Dark semi-transparent background for better visibility
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.85)'
+      ctx.fillRect(0, 0, 256, 128)
+      
+      // Colored border
+      const colorHex = '#' + color.toString(16).padStart(6, '0')
+      ctx.strokeStyle = colorHex
+      ctx.lineWidth = 8
+      ctx.strokeRect(4, 4, 248, 120)
+      
+      // White text for maximum contrast
+      ctx.fillStyle = '#ffffff'
+      ctx.font = 'bold 80px Arial'
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'middle'
+      ctx.fillText(effectText, 128, 68)
+      
+      const texture = new THREE.CanvasTexture(canvas)
+      const spriteMat = new THREE.SpriteMaterial({ map: texture })
+      const sprite = new THREE.Sprite(spriteMat)
+      sprite.scale.set(2.5, 1.25, 1)
+      sprite.position.set(0, 4.5, 0) // On TOP of the gate (higher up)
+      group.add(sprite)
+    }
+    
+    // Emoji on the gate
+    const emojiCanvas = document.createElement('canvas')
+    emojiCanvas.width = 128
+    emojiCanvas.height = 128
+    const emojiCtx = emojiCanvas.getContext('2d')!
+    emojiCtx.font = '80px Arial'
+    emojiCtx.textAlign = 'center'
+    emojiCtx.textBaseline = 'middle'
+    emojiCtx.fillText(emoji, 64, 64)
+    
+    const emojiTexture = new THREE.CanvasTexture(emojiCanvas)
+    const emojiSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: emojiTexture }))
+    emojiSprite.scale.set(1.2, 1.2, 1)
+    emojiSprite.position.set(0, 1.5, 0.5)
+    group.add(emojiSprite)
     
     return group
   }

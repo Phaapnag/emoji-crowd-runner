@@ -185,7 +185,22 @@ export class LevelSpawner {
     
     return { hitRed, hitPurple, collectedCoins, hitObstacle, crowdHits }
   }
-
+  
+  // Check if a Z position is too close to any obstacle (for gate spawning)
+  isTooCloseToObstacle(z: number): boolean {
+    const minDistance = 12  // Minimum distance from obstacles
+    
+    for (const obstacle of this.obstacles) {
+      if (obstacle.active) {
+        const dist = Math.abs(obstacle.mesh.position.z - z)
+        if (dist < minDistance) {
+          return true  // Too close!
+        }
+      }
+    }
+    return false  // Safe to spawn gate here
+  }
+  
   update(playerZ: number) {
     // Spawn new objects
     this.spawnObjects(playerZ)

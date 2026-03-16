@@ -43,6 +43,9 @@ const levelSpawner = new LevelSpawner(scene)
 const crowdManager = new CrowdManager(scene)
 const gateSpawner = new GateSpawner(scene)
 
+// Connect gate spawner to obstacle checker
+gateSpawner.setObstacleSpawner(levelSpawner)
+
 // Game state
 let score = 0
 let distance = 0
@@ -181,7 +184,7 @@ function animate() {
   levelSpawner.update(player.mesh.position.z)
   
   // Update gates
-  gateSpawner.update(player.mesh.position.z)
+  gateSpawner.update(player.mesh.position.z, Date.now(), speed)
   
   // Update crowd - pass player X and Z position for following
   crowdManager.update(player.mesh.position.x, player.mesh.position.z, Date.now() * 0.001)
@@ -220,38 +223,40 @@ function animate() {
       }
     }
     
-    // Check gate collisions
+    // Check gate collisions - only rebuild if count actually changes
     const gateType = gateSpawner.checkCollision(player.mesh)
     if (gateType) {
       const currentCount = crowdManager.getRemainingCount()
       const newCount = applyGateEffect(currentCount, gateType)
-      crowdManager.rebuild(newCount)
+      if (newCount !== currentCount) {  // Only rebuild if count changes!
+        crowdManager.rebuild(newCount)
+      }
       scoreEl.style.color = '#ffff00' // Yellow flash
     }
   }
   
-  // Apply gate effect to crowd count - balanced
+  // Apply gate effect to crowd count
+  // - Red: -5 to -20 (random)
+  // - Green: +2 to +5 (random)
+  // - Yellow: ×1 to ×3 (random)
+  // - Each gate spawns 2
   function applyGateEffect(currentCount: number, type: string): number {
     let newCount = currentCount
     
     switch (type) {
-      case 'shopping': // +3 (was +5)
-        newCount = currentCount + 3
+      case 'shopping': // Green: +2 to +5
+        newCount = currentCount + Math.floor(Math.random() * 4) + 2  // +2 to +5
         break
-      case 'sparkle': // ×2, but if count > 15 then +10
-        if (currentCount <= 15) {
-          newCount = currentCount * 2
-        } else {
-          newCount = currentCount + 10
-        }
+      case 'sparkle': // Yellow: ×1 to ×3
+        newCount = Math.floor(currentCount * (Math.random() * 2 + 1))  // ×1 to ×3
         break
-      case 'bomb': // -10 (min 1)
-        newCount = currentCount - 10
+      case 'bomb': // Red: -5 to -20
+        newCount = currentCount - (Math.floor(Math.random() * 16) + 5)  // -5 to -20
         break
     }
     
-    // Clamp to [1, 30]
-    return Math.max(1, Math.min(30, newCount))
+    // Clamp to [0, 50]
+    return Math.max(0, Math.min(50, newCount))
   }
   
   // Recover speed

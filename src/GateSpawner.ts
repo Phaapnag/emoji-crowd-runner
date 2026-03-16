@@ -4,19 +4,26 @@ import { Gate, GateType, GateData } from './Gate'
 export class GateSpawner {
   private scene: THREE.Scene
   private gates: GateData[] = []
-  private lastSpawnZ = -30
-  private spawnInterval = 50  // Increased to avoid obstacles
+  private lastSpawnZ = -30  // Start spawning from here
+  private lastGateZ = -999  // Track last gate position (for collision)
+  private lastTriggeredZ = -999  // Track last gate we triggered (for spawning)
+  private gateEffects: Map<number, string> = new Map()
+  private obstacleSpawner: any = null
+  private initialSpawned = false  // Track if initial spawn done
   
   constructor(scene: THREE.Scene) {
     this.scene = scene
     this.initGates()
   }
   
+  setObstacleSpawner(obstacleSpawner: any) {
+    this.obstacleSpawner = obstacleSpawner
+  }
+  
   private initGates() {
-    // Pre-create gate objects
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 30; i++) {
       const gateType = Gate.types[i % 3]
-      const mesh = Gate.createGateMesh(gateType)
+      const mesh = Gate.createGateMesh(gateType, '')
       mesh.visible = false
       this.scene.add(mesh)
       
@@ -32,55 +39,63 @@ export class GateSpawner {
   }
   
   spawnGates(playerZ: number) {
-    // Spawn new gates ahead of player
-    while (this.lastSpawnZ > playerZ - 100) {
-      this.lastSpawnZ -= this.spawnInterval
-      
-      // Only 40% chance to spawn gates per segment
-      if (Math.random() > 0.4) {
-        continue // Skip this segment - no gates
+    // Initial spawn: only spawn 3 groups ahead ONCE at start
+    if (!this.initialSpawned) {
+      for (let i = 0; i < 3; i++) {
+        this.spawnGateGroup()
       }
-      
-      // Spawn 1-2 gates per cycle
-      const numGates = Math.random() < 0.6 ? 1 : 2
-      
-      if (numGates === 1) {
-        // Single gate - any position except edges
-        const positions = [-2, 0, 2] // Avoid -4 and 4
-        const x = positions[Math.floor(Math.random() * positions.length)]
-        const type = Gate.getRandomType()
-        this.activateGate(x, type)
-      } else {
-        // Two gates - MUST be far apart (left + right, not adjacent)
-        const leftPositions = [-4, -2]
-        const rightPositions = [2, 4]
-        const leftX = leftPositions[Math.floor(Math.random() * leftPositions.length)]
-        const rightX = rightPositions[Math.floor(Math.random() * rightPositions.length)]
-        
-        const type1 = Gate.getRandomType()
-        const type2 = Gate.getRandomType()
-        
-        this.activateGate(leftX, type1)
-        this.activateGate(rightX, type2)
-      }
+      this.initialSpawned = true
+      return
+    }
+    
+    // After initial spawn: only spawn when player has moved 20+ units past last triggered gate
+    const distanceSinceLastGate = playerZ - this.lastTriggeredZ
+    
+    if (distanceSinceLastGate >= 20) {
+      this.spawnGateGroup()
     }
   }
   
-  private activateGate(x: number, type: GateType) {
+  private spawnGateGroup() {
+    // Move spawn position further
+    this.lastSpawnZ -= 20 // Fixed distance between gates
+    
+    // Check obstacle collision
+    if (this.obstacleSpawner && this.obstacleSpawner.isTooCloseToObstacle(this.lastSpawnZ)) {
+      // Skip this position, try next
+      this.lastSpawnZ -= 10
+    }
+    
+    // Spawn 2 gates
+    const leftPositions = [-4, -2]
+    const rightPositions = [2, 4]
+    const leftX = leftPositions[Math.floor(Math.random() * leftPositions.length)]
+    const rightX = rightPositions[Math.floor(Math.random() * rightPositions.length)]
+    
+    const type1 = Gate.getRandomType()
+    const type2 = Gate.getRandomType()
+    const effect1 = Gate.generateEffect(type1, 0)
+    const effect2 = Gate.generateEffect(type2, 0)
+    
+    this.activateGate(leftX, type1, effect1.text, this.lastSpawnZ)
+    this.activateGate(rightX, type2, effect2.text, this.lastSpawnZ)
+  }
+  
+  private activateGate(x: number, type: GateType, effectText: string, z: number) {
     const gate = this.gates.find(g => !g.active)
     if (gate) {
-      // Recreate mesh with correct type
       this.scene.remove(gate.mesh)
-      gate.mesh = Gate.createGateMesh(type)
+      gate.mesh = Gate.createGateMesh(type, effectText)
       gate.mesh.visible = true
-      gate.mesh.position.set(x, 0, this.lastSpawnZ)
+      gate.mesh.position.set(x, 0, z)
       this.scene.add(gate.mesh)
       
       gate.type = type
       gate.x = x
-      gate.z = this.lastSpawnZ
+      gate.z = z
       gate.active = true
       gate.triggered = false
+      this.gateEffects.set(z, effectText)
     }
   }
   
@@ -92,9 +107,13 @@ export class GateSpawner {
         const gatePos = new THREE.Vector3(gate.x, 0, gate.z)
         const dist = playerPos.distanceTo(gatePos)
         
-        if (dist < 1.8) { // Trigger distance - tighter
+        if (dist < 1.8) {
           gate.triggered = true
           gate.mesh.visible = false
+          // Update last triggered gate position for spawning next gates
+          this.lastTriggeredZ = gate.z
+          // Keep lastGateZ for any other logic that might need it
+          this.lastGateZ = gate.z
           return gate.type
         }
       }
@@ -104,7 +123,6 @@ export class GateSpawner {
   }
   
   update(playerZ: number) {
-    // Spawn new gates
     this.spawnGates(playerZ)
     
     // Recycle gates behind player
@@ -113,6 +131,7 @@ export class GateSpawner {
         gate.active = false
         gate.triggered = false
         gate.mesh.visible = false
+        this.gateEffects.delete(gate.z)
       }
     }
   }
