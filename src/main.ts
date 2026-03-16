@@ -273,7 +273,7 @@ function animate() {
     
     // Update UI to show battle mode
     scoreEl.style.color = '#ff0000'
-    scoreEl.innerHTML = `⚔️ 終點戰!<br>👥 我方: ${crowdManager.getRemainingCount()}<br>💀 敵人: ${enemyCrowd.getCount()}`
+    scoreEl.textContent = `⚔️ 終點戰! 我方:${crowdManager.getRemainingCount()} 敵人:${enemyCrowd.getCount()}`
   }
   
   // Update enemy crowd if in end zone
