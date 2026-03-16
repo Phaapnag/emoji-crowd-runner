@@ -59,7 +59,7 @@ export class GateSpawner {
     
     console.log('[GateSpawner] distanceTraveled:', distanceTraveled, 'lastPlayerZ:', this.lastPlayerZ, 'playerZ:', playerZ)
     
-    if (distanceTraveled >= 40) {
+    if (distanceTraveled >= 80) {
       console.log('[GateSpawner] ✓ Spawning new gate group!')
       this.spawnGateGroup()
       this.lastPlayerZ = playerZ
@@ -72,7 +72,7 @@ export class GateSpawner {
     console.log('[GateSpawner] spawnGateGroup called, lastSpawnZ before:', this.lastSpawnZ)
     
     // Move spawn position further
-    this.lastSpawnZ -= 40 // Fixed distance between gates
+    this.lastSpawnZ -= 80 // Fixed distance between gates
     
     console.log('[GateSpawner] Spawning at z:', this.lastSpawnZ)
     

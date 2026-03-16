@@ -150,7 +150,7 @@ export class Gate {
       
       // Text with gate color for contrast
       ctx.fillStyle = colorHex
-      ctx.font = 'bold 48px Arial'
+      ctx.font = 'bold 60px Arial'
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
       ctx.fillText(effectText, 128, 68)
@@ -158,7 +158,7 @@ export class Gate {
       const texture = new THREE.CanvasTexture(canvas)
       const spriteMat = new THREE.SpriteMaterial({ map: texture })
       const sprite = new THREE.Sprite(spriteMat)
-      sprite.scale.set(1.5, 0.75, 1)
+      sprite.scale.set(1.8, 0.9, 1)
       sprite.position.set(0, 4.2, 0) // On TOP of the gate (higher up)
       group.add(sprite)
     }
