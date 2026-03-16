@@ -158,9 +158,9 @@ export class CrowdManager {
           attempts++
         } while (this.isOverlapping(newX, newZ) && attempts < 20)
         
-        // Spawn position: far behind (edge of screen) + random offset to left/right
+        // Spawn position: closer behind (edge of screen) + random offset to left/right
         const spawnX = newX + (Math.random() - 0.5) * 4  // Spread horizontally
-        const spawnZ = newZ + 15  // Start 15 units behind (will "run" forward)
+        const spawnZ = newZ + 8  // Start 8 units behind (will "run" forward)
         
         this.positions.push({
           x: newX,
@@ -279,12 +279,14 @@ export class CrowdManager {
       // Get previous position
       const prev = this.prevPositions[i]
       
-      // Check if this is a new member (still far from target = running to join)
-      const distFromTarget = Math.abs(prev.z - targetZ)
-      const isRunning = distFromTarget > 2
+      // Check if this is a new member (still "running" to join)
+      // Use spawnTimes to track - if recently spawned (within 2 seconds), it's running
+      const spawnTime = this.spawnTimes[i] || 0
+      const timeSinceSpawn = Date.now() - spawnTime
+      const isRunning = timeSinceSpawn < 2000
       
       // Slower delay for "running" members, faster for joined
-      const delay = isRunning ? 0.03 : 0.12
+      const delay = isRunning ? 0.04 : 0.12
       
       // Lerp towards target
       const newX = prev.x + (targetX - prev.x) * delay
@@ -293,7 +295,7 @@ export class CrowdManager {
       // Update previous position for next frame
       this.prevPositions[i] = { x: newX, z: newZ }
       
-      // Floating animation (more bouncing if running)
+      // Floating animation
       const floatY = Math.sin(time * 3 + (pos?.offset || 0)) * 0.1
       
       // More bounce if running
