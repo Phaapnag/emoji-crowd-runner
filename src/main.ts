@@ -100,6 +100,25 @@ battleOverlay.style.cssText = `
 `
 document.body.appendChild(battleOverlay)
 
+// Create battle status overlay (center - for browser)
+const battleStatusOverlay = document.createElement('div')
+battleStatusOverlay.style.cssText = `
+  position: fixed;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #ffffff;
+  font-size: 36px;
+  font-weight: bold;
+  text-shadow: 3px 3px 6px #000, -1px -1px 0 #000;
+  pointer-events: none;
+  display: none;
+  z-index: 100;
+  text-align: center;
+  font-family: Arial, sans-serif;
+`
+document.body.appendChild(battleStatusOverlay)
+
 // Input handling
 let inputLeft = false
 let inputRight = false
@@ -382,13 +401,22 @@ function animate() {
     gateSpawner.clearAll()
     levelSpawner.clearAll()
     
-    // Start camera transition (will complete in 2 seconds)
-    cameraTargetY = 8
-    cameraTargetZ = 14
+    // Start camera transition to battle view (3 seconds = lerp 0.02)
+    cameraTargetY = 10  // Higher to see enemies
+    cameraTargetZ = 18  // Further back
     cameraTransitioning = true
     
     scoreEl.style.color = '#ff0000'
     console.log('[EndZone] Enemy count:', enemyCrowd.getCount())
+  }
+  
+  // Also start camera transition BEFORE end zone (when approaching)
+  if (!endZoneTriggered && distance >= END_ZONE_DISTANCE - 100) {
+    // Gradually move camera forward as we approach end zone
+    const approachProgress = (distance - (END_ZONE_DISTANCE - 100)) / 100
+    cameraTargetY = 5 + (10 - 5) * approachProgress
+    cameraTargetZ = 10 + (18 - 10) * approachProgress
+    cameraTransitioning = true
   }
   
   // Battle state machine
@@ -410,19 +438,29 @@ function animate() {
           battleTimer = 0
           
           if (!bossTextSprite) {
-            bossTextSprite = createTextSprite('BOSS', '#ff0000', 3)  // Smaller!
+            bossTextSprite = createTextSprite('BOSS', '#ff0000', 3)
             bossTextSprite.position.set(0, 4, playerZ - 5)
             scene.add(bossTextSprite)
           }
         }
+        
+        // Show battle status in center (for browser)
+        battleStatusOverlay.innerHTML = `👥 ${myCount} vs 💀 ${enemyCount}`
+        battleStatusOverlay.style.display = 'block'
+        battleStatusOverlay.style.color = '#ffff00'
         
         scoreEl.textContent = `⚔️ BOSS戰! 👥${myCount} vs 💀${enemyCount} (減速中...)`
         break
         
       case 'waiting':
         // Show battle instruction at bottom center
-        battleOverlay.textContent = `⚔️ 向上掃 / 按↑ 開始戰鬥! 👥${myCount} vs 💀${enemyCount}`
+        battleOverlay.textContent = `⚔️ 向上掃 / 按↑ 開始戰鬥!`
         battleOverlay.style.display = 'block'
+        
+        // Show battle status in center
+        battleStatusOverlay.innerHTML = `👥 ${myCount} vs 💀 ${enemyCount}`
+        battleStatusOverlay.style.display = 'block'
+        battleStatusOverlay.style.color = '#ffffff'
         
         if (bossTextSprite) {
           if (battleTimer < 120) {
@@ -433,21 +471,22 @@ function animate() {
         }
         
         battleTimer++
-        scoreEl.textContent = ``  // Hide debug info during waiting
+        scoreEl.textContent = ``
         break
         
       case 'charging':
-        // Hide overlay
+        // Hide overlays
         battleOverlay.style.display = 'none'
+        battleStatusOverlay.style.display = 'none'
         
         battleTimer++
         
         // SLOW charge animation: 2 seconds to meet (120 frames)
-        const chargeProgress = Math.min(1, battleTimer / 120)  // 2 seconds = 120 frames
+        const chargeProgress = Math.min(1, battleTimer / 120)
         const enemyZ = enemyCrowd.getEnemyZoneZ()
         
         // Enemies move toward player, but STOP at player position (don't pass!)
-        const minEnemyZ = playerZ + 2  // Enemies stop 2 units before player
+        const minEnemyZ = playerZ + 2
         const enemyMoveZ = enemyZ - (enemyZ - minEnemyZ) * chargeProgress
         
         // Crowd moves toward enemies - keep updating every frame!
@@ -461,7 +500,7 @@ function animate() {
         
         scoreEl.textContent = `⚔️ 衝啊! 👥${myCount} vs 💀${enemyCount}`
         
-        if (battleTimer >= 120) {  // 2 seconds charge
+        if (battleTimer >= 120) {
           battleState = 'battling'
           battleTimer = 0
         }
@@ -484,14 +523,19 @@ function animate() {
           
           console.log('[Battle] Clash! My:', newMyCount, 'Enemy:', newEnemyCount)
           
+          // Show updated counts in center
+          battleStatusOverlay.innerHTML = `👥 ${newMyCount} vs 💀 ${newEnemyCount}`
+          battleStatusOverlay.style.display = 'block'
+          
           scoreEl.textContent = `⚔️ 決戰! 👥${newMyCount} vs 💀${newEnemyCount}`
           
           if (newMyCount <= 0) {
             battleState = 'ended'
             finalResult = 'lose'
             gameOver = true
+            battleStatusOverlay.style.display = 'none'
             
-            resultTextSprite = createTextSprite('LOSS', '#ff0000', 3)  // Smaller!
+            resultTextSprite = createTextSprite('LOSS', '#ff0000', 3)
             resultTextSprite.position.set(0, 3, playerZ)
             scene.add(resultTextSprite)
             
@@ -500,8 +544,9 @@ function animate() {
             battleState = 'ended'
             finalResult = 'win'
             gameWon = true
+            battleStatusOverlay.style.display = 'none'
             
-            resultTextSprite = createTextSprite('WIN', '#00ff00', 3)  // Smaller!
+            resultTextSprite = createTextSprite('WIN', '#00ff00', 3)
             resultTextSprite.position.set(0, 3, playerZ)
             scene.add(resultTextSprite)
             
@@ -547,19 +592,25 @@ function animate() {
   
   coins += collectedCoins
    
-  // Camera - gradual transition to end zone view (2 seconds = lerp 0.05)
-  const cameraLerp = cameraTransitioning ? 0.03 : 1  // 2 seconds to transition
+  // Hide battle status when not in end zone
+  if (!inEndZone) {
+    battleOverlay.style.display = 'none'
+    battleStatusOverlay.style.display = 'none'
+  }
+  
+  // Camera - gradual transition to battle view (3 seconds = lerp 0.02)
+  const cameraLerp = cameraTransitioning ? 0.02 : 1  // 3 seconds to transition
   camera.position.x = 0
   if (inEndZone || cameraTransitioning) {
-    // End zone: camera higher and further back, looking down at player+crowd
-    const targetZ = player.mesh.position.z + 14
-    const targetY = 8
+    // End zone: camera higher and further back to show player+crowd + enemies
+    const targetZ = player.mesh.position.z + cameraTargetZ
+    const targetY = cameraTargetY
     camera.position.z += (targetZ - camera.position.z) * cameraLerp
     camera.position.y += (targetY - camera.position.y) * cameraLerp
     camera.lookAt(0, 2, player.mesh.position.z)
     
     // Stop transitioning when close enough
-    if (Math.abs(camera.position.y - 8) < 0.1) {
+    if (Math.abs(camera.position.y - cameraTargetY) < 0.1) {
       cameraTransitioning = false
     }
   } else {
