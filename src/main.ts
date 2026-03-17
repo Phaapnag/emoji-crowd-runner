@@ -424,23 +424,26 @@ function animate() {
         
         battleTimer++
         
-        // Both sides move toward each other - meet in the middle!
-        const chargeProgress = Math.min(1, battleTimer / 60)
+        // SLOW charge animation: 2 seconds to meet (120 frames)
+        const chargeProgress = Math.min(1, battleTimer / 120)
         const enemyZ = enemyCrowd.getEnemyZoneZ()
-        const meetPoint = (playerZ + enemyZ) / 2
         
-        // Player crowd moves forward toward meet point
-        const crowdTargetZ = meetPoint
-        crowdManager.setCustomZ(crowdTargetZ)
+        // Enemies move toward player, but STOP at player position (don't pass!)
+        const minEnemyZ = playerZ + 1  // Enemies stop 1 unit before player
+        const enemyMoveZ = enemyZ - (enemyZ - minEnemyZ) * chargeProgress
         
-        // Enemies move backward toward meet point
-        enemyCrowd.setCustomZ(meetPoint)
+        // Crowd moves toward enemies
+        const crowdMoveZ = playerZ + (enemyZ - playerZ) * chargeProgress * 0.5
+        
+        // Apply positions
+        crowdManager.setCustomZ(crowdMoveZ)
+        enemyCrowd.setCustomZ(enemyMoveZ)
         
         enemyCrowd.update(Date.now() * 0.001)
         
         scoreEl.textContent = `⚔️ 衝啊! 👥${myCount} vs 💀${enemyCount}`
         
-        if (battleTimer >= 60) {
+        if (battleTimer >= 120) {  // 2 seconds charge
           battleState = 'battling'
           battleTimer = 0
         }
@@ -526,10 +529,19 @@ function animate() {
   
   coins += collectedCoins
   
+  // Camera - move UP in end zone so player appears at bottom
   camera.position.x = 0
-  camera.position.z = player.mesh.position.z + 10
-  camera.position.y = 5
-  camera.lookAt(0, 0, player.mesh.position.z)
+  if (inEndZone) {
+    // End zone: camera higher and further back, looking down at player+crowd
+    camera.position.z = player.mesh.position.z + 14
+    camera.position.y = 8
+    camera.lookAt(0, 2, player.mesh.position.z)
+  } else {
+    // Normal gameplay
+    camera.position.z = player.mesh.position.z + 10
+    camera.position.y = 5
+    camera.lookAt(0, 0, player.mesh.position.z)
+  }
   
   distance += speed
   score = Math.floor(distance) + coins * 10

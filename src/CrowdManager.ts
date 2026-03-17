@@ -23,6 +23,10 @@ export class CrowdManager {
   // Track new members that are "running" to join (spawn time)
   private spawnTimes: number[] = []
   
+  // Override mode - when set, crowd follows this Z instead of player
+  private overrideZ: number | null = null
+  private overrideX: number | null = null
+  
   // Check if a position overlaps with existing crowd members
   private isOverlapping(x: number, z: number): boolean {
     const minDist = 0.4  // Minimum distance between crowd members
@@ -266,15 +270,19 @@ export class CrowdManager {
   update(playerX: number, playerZ: number, time: number) {
     const total = this.positions.length
     
+    // Use override position if set (during charge)
+    const useX = this.overrideX !== null ? this.overrideX : playerX
+    const useZ = this.overrideZ !== null ? this.overrideZ : playerZ
+    
     for (let i = 0; i < this.positions.length; i++) {
       const mesh = this.meshes[i]
       if (!mesh) continue
       
       const pos = this.positions[i]
       
-      // Target position relative to player
-      const targetX = playerX + pos.x
-      const targetZ = playerZ + 0.6 + pos.z
+      // Target position - use override or player position
+      const targetX = useX + pos.x
+      const targetZ = useZ + 0.6 + pos.z
       
       // Get previous position
       const prev = this.prevPositions[i]
@@ -329,16 +337,30 @@ export class CrowdManager {
 
   // Set custom Z offset for charging animation
   setCustomZ(zOffset: number) {
+    // Set override mode - crowd will move to this Z instead of following player
+    this.overrideZ = zOffset + 0.6  // Add offset like normal following
+    this.overrideX = 0  // Center
+    
+    // Update all prevPositions to move toward override position
     for (let i = 0; i < this.positions.length; i++) {
       const pos = this.positions[i]
-      // Override the previous Z to move forward
+      const targetX = this.overrideX + pos.x
+      const targetZ = this.overrideZ + pos.z
+      
+      // Directly set prev position (will lerp toward it)
       this.prevPositions[i] = {
-        x: this.prevPositions[i].x,
-        z: zOffset + 0.6 + pos.z
+        x: targetX,
+        z: targetZ
       }
     }
   }
-
+  
+  // Clear override - return to normal following
+  clearOverride() {
+    this.overrideZ = null
+    this.overrideX = null
+  }
+  
   dispose() {
     this.meshes.forEach(mesh => {
       if (mesh) {
