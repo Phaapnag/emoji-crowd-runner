@@ -30,7 +30,7 @@ export class EnemyCrowd {
     this.count = Math.floor(5 + Math.random() * 20 * difficulty)
     this.count = Math.min(30, Math.max(5, this.count))
     
-    const geometry = new THREE.BoxGeometry(0.6, 0.6, 0.6)  // Medium size
+    const geometry = new THREE.BoxGeometry(0.2, 0.2, 0.2)  // Slightly smaller than player crowd (0.25)
     
     // Spawn in front of player - 50 units ahead
     this.spawnZ = playerZ - 50
@@ -60,7 +60,7 @@ export class EnemyCrowd {
       })
       
       const mesh = new THREE.Mesh(geometry, material)
-      mesh.position.set(x, 0.15, z)
+      mesh.position.set(x, 0.1, z)  // Adjusted for smaller size
       mesh.castShadow = false
       
       this.scene.add(mesh)
@@ -140,7 +140,7 @@ export class EnemyCrowd {
       const floatY = Math.sin(time * 4 + pos.offset) * 0.1
       const bounce = Math.abs(Math.sin(time * 6)) * 0.1
       
-      mesh.position.y = 0.3 + floatY + bounce
+      mesh.position.y = 0.1 + floatY + bounce  // Adjusted for smaller size
       
       // Rotation
       mesh.rotation.y = time * 0.5 + pos.offset
