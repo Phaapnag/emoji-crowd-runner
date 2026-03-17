@@ -116,6 +116,8 @@ battleStatusOverlay.style.cssText = `
   z-index: 100;
   text-align: center;
   font-family: Arial, sans-serif;
+  white-space: nowrap;
+  min-width: 200px;
 `
 document.body.appendChild(battleStatusOverlay)
 
@@ -139,6 +141,19 @@ let inputLeft = false
 let inputRight = false
 
 document.addEventListener('keydown', (e) => {
+  // Tab to continue after battle (when battleState is 'ended')
+  if (battleState === 'ended' && finalResult) {
+    if (e.key === 'Tab') {
+      e.preventDefault()
+      if (finalResult === 'win') {
+        gameWon = true
+      } else {
+        gameOver = true
+      }
+      return
+    }
+  }
+  
   if (gameOver || gameWon) {
     if (e.key === 'r' || e.key === 'R' || e.key === 'Enter') {
       location.reload()
@@ -425,13 +440,19 @@ function animate() {
     console.log('[EndZone] Enemy count:', enemyCrowd.getCount())
   }
   
-  // Also start camera transition BEFORE end zone (when approaching) - only start at distance 850
-  if (!endZoneTriggered && distance >= END_ZONE_DISTANCE - 50) {
+  // Also start camera transition BEFORE end zone (when approaching)
+  // Y starts at distance 900, Z starts at distance 850
+  if (!endZoneTriggered && distance >= 850) {
     // Gradually move camera forward as we approach end zone
-    const approachProgress = (distance - (END_ZONE_DISTANCE - 50)) / 50
-    cameraTargetY = 5 + (10 - 5) * Math.min(1, approachProgress)
+    const approachProgress = (distance - 850) / 50  // Z: 850-900
     cameraTargetZ = 10 + (18 - 10) * Math.min(1, approachProgress)
     cameraTransitioning = true
+  }
+  
+  if (!endZoneTriggered && distance >= 900) {
+    // Y starts at 900
+    const yProgress = (distance - 900) / 50  // Y: 900-950
+    cameraTargetY = 5 + (10 - 5) * Math.min(1, yProgress)
   }
   
   // Battle state machine
@@ -614,7 +635,7 @@ function animate() {
   }
   
   // Update debug camera info
-  debugOverlay.textContent = `Cam: y=${camera.position.y.toFixed(1)} z=${camera.position.z.toFixed(1)} | D:${Math.floor(distance)} | State:${battleState}`
+  debugOverlay.textContent = `Cam: x=${camera.position.x.toFixed(1)} y=${camera.position.y.toFixed(1)} z=${camera.position.z.toFixed(1)} | D:${Math.floor(distance)} | State:${battleState}`
   
   // Camera - gradual transition to battle view (3 seconds = lerp 0.02)
   const cameraLerp = cameraTransitioning ? 0.02 : 1  // 3 seconds to transition
