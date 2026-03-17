@@ -74,6 +74,11 @@ let finalResult: 'win' | 'lose' | null = null
 let bossTextSprite: THREE.Mesh | null = null
 let resultTextSprite: THREE.Mesh | null = null
 
+// Camera transition
+let cameraTargetY = 5
+let cameraTargetZ = 10
+let cameraTransitioning = false
+
 // UI elements
 const scoreEl = document.getElementById('score')!
 
@@ -305,7 +310,13 @@ function animate() {
     return
   }
   
-  player.update(inputLeft, inputRight, speed)
+  // Update player - freeze movement in end zone
+  if (inEndZone) {
+    // Disable left/right movement in end zone
+    player.update(false, false, 0)
+  } else {
+    player.update(inputLeft, inputRight, speed)
+  }
   roadSpawner.update(player.mesh.position.z)
   levelSpawner.update(player.mesh.position.z)
   gateSpawner.update(player.mesh.position.z)
@@ -367,7 +378,14 @@ function animate() {
     
     speed = speed * 0.3
     
+    // Clear gates AND obstacles
     gateSpawner.clearAll()
+    levelSpawner.clearAll()
+    
+    // Start camera transition (will complete in 2 seconds)
+    cameraTargetY = 8
+    cameraTargetZ = 14
+    cameraTransitioning = true
     
     scoreEl.style.color = '#ff0000'
     console.log('[EndZone] Enemy count:', enemyCrowd.getCount())
@@ -425,17 +443,17 @@ function animate() {
         battleTimer++
         
         // SLOW charge animation: 2 seconds to meet (120 frames)
-        const chargeProgress = Math.min(1, battleTimer / 120)
+        const chargeProgress = Math.min(1, battleTimer / 120)  // 2 seconds = 120 frames
         const enemyZ = enemyCrowd.getEnemyZoneZ()
         
         // Enemies move toward player, but STOP at player position (don't pass!)
-        const minEnemyZ = playerZ + 1  // Enemies stop 1 unit before player
+        const minEnemyZ = playerZ + 2  // Enemies stop 2 units before player
         const enemyMoveZ = enemyZ - (enemyZ - minEnemyZ) * chargeProgress
         
-        // Crowd moves toward enemies
+        // Crowd moves toward enemies - keep updating every frame!
         const crowdMoveZ = playerZ + (enemyZ - playerZ) * chargeProgress * 0.5
         
-        // Apply positions
+        // Apply positions - keep setting every frame so they move continuously
         crowdManager.setCustomZ(crowdMoveZ)
         enemyCrowd.setCustomZ(enemyMoveZ)
         
@@ -528,14 +546,22 @@ function animate() {
   }
   
   coins += collectedCoins
-  
-  // Camera - move UP in end zone so player appears at bottom
+   
+  // Camera - gradual transition to end zone view (2 seconds = lerp 0.05)
+  const cameraLerp = cameraTransitioning ? 0.03 : 1  // 2 seconds to transition
   camera.position.x = 0
-  if (inEndZone) {
+  if (inEndZone || cameraTransitioning) {
     // End zone: camera higher and further back, looking down at player+crowd
-    camera.position.z = player.mesh.position.z + 14
-    camera.position.y = 8
+    const targetZ = player.mesh.position.z + 14
+    const targetY = 8
+    camera.position.z += (targetZ - camera.position.z) * cameraLerp
+    camera.position.y += (targetY - camera.position.y) * cameraLerp
     camera.lookAt(0, 2, player.mesh.position.z)
+    
+    // Stop transitioning when close enough
+    if (Math.abs(camera.position.y - 8) < 0.1) {
+      cameraTransitioning = false
+    }
   } else {
     // Normal gameplay
     camera.position.z = player.mesh.position.z + 10

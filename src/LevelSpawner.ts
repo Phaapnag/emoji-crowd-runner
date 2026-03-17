@@ -235,4 +235,16 @@ export class LevelSpawner {
       .filter(o => o.active)
       .map(o => ({ position: o.mesh.position.clone() }))
   }
+  
+  // Clear all obstacles and coins (for end zone)
+  clearAll() {
+    for (const obs of this.obstacles) {
+      obs.active = false
+      obs.mesh.visible = false
+    }
+    for (const coin of this.coins) {
+      coin.active = false
+      coin.mesh.visible = false
+    }
+  }
 }
