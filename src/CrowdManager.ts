@@ -274,6 +274,11 @@ export class CrowdManager {
     const useX = this.overrideX !== null ? this.overrideX : playerX
     const useZ = this.overrideZ !== null ? this.overrideZ : playerZ
     
+    // Debug
+    if (this.overrideZ !== null) {
+      console.log('[CrowdManager] Using override Z:', this.overrideZ.toFixed(1), 'playerZ:', playerZ.toFixed(1))
+    }
+    
     for (let i = 0; i < this.positions.length; i++) {
       const mesh = this.meshes[i]
       if (!mesh) continue
@@ -338,7 +343,8 @@ export class CrowdManager {
   // Set custom Z offset for charging animation
   setCustomZ(zOffset: number) {
     // Set override mode - crowd will move to this Z instead of following player
-    this.overrideZ = zOffset + 0.6  // Add offset like normal following
+    // Note: Don't add 0.6 here, update() will add it
+    this.overrideZ = zOffset
     this.overrideX = 0  // Center
     
     // Update all prevPositions to move toward override position
