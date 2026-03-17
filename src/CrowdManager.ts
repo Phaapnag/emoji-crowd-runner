@@ -327,6 +327,18 @@ export class CrowdManager {
     }
   }
 
+  // Set custom Z offset for charging animation
+  setCustomZ(zOffset: number) {
+    for (let i = 0; i < this.positions.length; i++) {
+      const pos = this.positions[i]
+      // Override the previous Z to move forward
+      this.prevPositions[i] = {
+        x: this.prevPositions[i].x,
+        z: zOffset + 0.6 + pos.z
+      }
+    }
+  }
+
   dispose() {
     this.meshes.forEach(mesh => {
       if (mesh) {

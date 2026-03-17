@@ -80,6 +80,17 @@ export class EnemyCrowd {
     return this.spawnZ
   }
   
+  // Set custom Z for charging animation
+  setCustomZ(z: number) {
+    const delta = z - this.spawnZ
+    for (let i = 0; i < this.meshes.length; i++) {
+      if (this.meshes[i]) {
+        this.meshes[i].position.z += delta
+      }
+    }
+    this.spawnZ = z
+  }
+  
   // Check if player has reached enemy zone - require player to actually get close!
   hasReachedEnemyZone(playerZ: number): boolean {
     // Player must be within 5 units of enemy to trigger battle

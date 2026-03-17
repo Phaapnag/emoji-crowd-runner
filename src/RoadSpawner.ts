@@ -13,7 +13,7 @@ export class RoadSpawner {
     // Wider ground for gates at [-4, -2, 0, 2, 4]
     const groundGeo = new THREE.PlaneGeometry(16, 1000)
     const groundMat = new THREE.MeshStandardMaterial({ 
-      color: 0x374151,
+      color: 0x6b7280,  // Lighter gray (was 0x374151)
       roughness: 0.8,
       metalness: 0.1
     })

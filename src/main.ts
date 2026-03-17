@@ -63,7 +63,16 @@ let gameWon = false
 const END_ZONE_DISTANCE = 900  // Trigger end zone when distance >= 900
 let inEndZone = false
 let endZoneTriggered = false
-let inBattle = false  // Battle mode - crowd vs enemies
+
+// Battle states: 'none' | 'slowing' | 'waiting' | 'charging' | 'battling' | 'ended'
+let battleState: 'none' | 'slowing' | 'waiting' | 'charging' | 'battling' | 'ended' = 'none'
+let battleTimer = 0  // Timer for various battle phases
+let chargePosition = 0  // For charging animation
+let finalResult: 'win' | 'lose' | null = null
+
+// 3D Text sprites
+let bossTextSprite: THREE.Mesh | null = null
+let resultTextSprite: THREE.Mesh | null = null
 
 // UI elements
 const scoreEl = document.getElementById('score')!
@@ -73,7 +82,7 @@ let inputLeft = false
 let inputRight = false
 
 document.addEventListener('keydown', (e) => {
-  if (gameOver) {
+  if (gameOver || gameWon) {
     if (e.key === 'r' || e.key === 'R' || e.key === 'Enter') {
       location.reload()
     }
@@ -96,33 +105,43 @@ document.addEventListener('keyup', (e) => {
   }
 })
 
-// Click to restart (for Chrome browser)
+// Click to restart / continue
 document.addEventListener('click', () => {
-  if (gameOver || gameWon) {
+  if (battleState === 'ended' && finalResult) {
+    // Player tapped to continue after battle
+    if (finalResult === 'win') {
+      gameWon = true
+    } else {
+      gameOver = true
+    }
+  } else if (gameOver || gameWon) {
     location.reload()
   }
 })
 
-// Touch handling - simple binary control:
-// Touch left half = move left (constant speed)
-// Touch right half = move right (constant speed)
-// Release = stop
-
-// Touch gesture handling
+// Touch handling
 let touchStartY = 0
 let touchStartX = 0
 
 document.addEventListener('touchstart', (e) => {
+  if (battleState === 'ended' && finalResult) {
+    // Player tapped to continue after battle
+    if (finalResult === 'win') {
+      gameWon = true
+    } else {
+      gameOver = true
+    }
+    return
+  }
+  
   if (gameOver || gameWon) {
     location.reload()
     return
   }
   
-  // Record touch start position for swipe detection
   touchStartY = e.touches[0].clientY
   touchStartX = e.touches[0].clientX
   
-  // Prevent default to stop browser touch behavior
   e.preventDefault()
   handleTouch(e.touches[0].clientX)
 }, { passive: false })
@@ -132,12 +151,17 @@ document.addEventListener('touchmove', (e) => {
   const deltaY = touchStartY - e.touches[0].clientY
   const deltaX = Math.abs(touchStartX - e.touches[0].clientX)
   
-  // If swiped up more than 50px and not much horizontal movement
+  // If swiped up more than 50px - start battle from waiting state
   if (deltaY > 50 && deltaX < 30) {
-    // Start battle if in end zone!
-    if (inEndZone && !inBattle && !gameOver && !gameWon) {
-      console.log('[Touch] Swipe up - Starting battle!')
-      inBattle = true
+    if (battleState === 'waiting') {
+      console.log('[Touch] Swipe up - Starting charge!')
+      battleState = 'charging'
+      battleTimer = 0
+      // Remove boss text
+      if (bossTextSprite) {
+        scene.remove(bossTextSprite)
+        bossTextSprite = null
+      }
     }
   }
   
@@ -158,8 +182,6 @@ document.addEventListener('touchcancel', () => {
 function handleTouch(touchX: number) {
   const screenWidth = window.innerWidth
   
-  // Simple: left half = left, right half = right
-  // Try INVERTED for user's phone issue
   if (touchX < screenWidth * 0.4) {
     inputLeft = true
     inputRight = false
@@ -177,11 +199,9 @@ function updateCameraFOV() {
   const aspect = window.innerWidth / window.innerHeight
   
   if (aspect < 0.5) {
-    // 手機直向 - 廣角
     camera.fov = 90
     camera.position.z = 8
   } else {
-    // 平板／電腦 - 正常
     camera.fov = 75
     camera.position.z = 12
   }
@@ -192,28 +212,71 @@ function updateCameraFOV() {
 }
 
 window.addEventListener('resize', updateCameraFOV)
-
-// 初始化 camera setting
 updateCameraFOV()
+
+// Helper: Create 3D text sprite
+function createTextSprite(text: string, color: string, size: number = 3): THREE.Mesh {
+  const canvas = document.createElement('canvas')
+  const ctx = canvas.getContext('2d')!
+  canvas.width = 512
+  canvas.height = 256
+  
+  // Background
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'
+  ctx.fillRect(0, 0, canvas.width, canvas.height)
+  
+  // Border
+  ctx.strokeStyle = color
+  ctx.lineWidth = 10
+  ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20)
+  
+  // Text
+  ctx.font = `bold ${size * 40}px Arial`
+  ctx.fillStyle = color
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText(text, canvas.width / 2, canvas.height / 2)
+  
+  const texture = new THREE.CanvasTexture(canvas)
+  const material = new THREE.MeshBasicMaterial({ 
+    map: texture, 
+    transparent: true,
+    side: THREE.DoubleSide
+  })
+  const geometry = new THREE.PlaneGeometry(8, 4)
+  const mesh = new THREE.Mesh(geometry, material)
+  
+  return mesh
+}
 
 // Animation loop
 function animate() {
   requestAnimationFrame(animate)
   
   // Debug log
-  console.log('[Game] distance:', distance.toFixed(1), 'score:', score, 'playerZ:', player.mesh.position.z.toFixed(1))
+  console.log('[Game] distance:', distance.toFixed(1), 'battleState:', battleState, 'playerZ:', player.mesh.position.z.toFixed(1))
   
-  if (gameOver) {
-    console.log('[Game] Game Over!')
-    enemyCrowd.update(Date.now() * 0.001)  // Still animate enemies on game over
+  if (gameOver || gameWon) {
+    // Still render but stop updates
+    enemyCrowd.update(Date.now() * 0.001)
+    crowdManager.update(player.mesh.position.x, player.mesh.position.z, Date.now() * 0.001)
+    
+    // Rotate result text
+    if (resultTextSprite) {
+      resultTextSprite.rotation.y += 0.02
+    }
+    
     renderer.render(scene, camera)
     return
   }
   
-  if (gameWon) {
-    console.log('[Game] Game Won!')
-    enemyCrowd.update(Date.now() * 0.001)  // Still animate on win
-    crowdManager.update(player.mesh.position.x, player.mesh.position.z, Date.now() * 0.001)
+  // ===== BATTLE ENDED STATE =====
+  if (battleState === 'ended') {
+    // Rotate result text until player taps
+    if (resultTextSprite) {
+      resultTextSprite.rotation.y += 0.02
+    }
+    
     renderer.render(scene, camera)
     return
   }
@@ -237,20 +300,17 @@ function animate() {
   
   // Check collisions
   if (invulnerableTimer === 0) {
-    // Get crowd positions for collision detection
     const crowdPositions = crowdManager.getCrowdPositions()
     const collision = levelSpawner.checkCollisions(player.mesh, crowdPositions)
     collectedCoins = collision.collectedCoins
     
-    // If crowd hits obstacle, eliminate ONLY the crowd members that hit obstacles
     if (collision.hitObstacle && collision.crowdHits && collision.crowdHits.length > 0) {
-      // Remove only the specific crowd members that hit
       crowdManager.eliminateByIndices(collision.crowdHits)
-      scoreEl.style.color = '#ff8800' // Orange flash
+      scoreEl.style.color = '#ff8800'
     }
     
     if (collision.hitRed) {
-      speed = 0.1  // Slow down (70% of 0.15)
+      speed = 0.1
       speedRecoveryTimer = 60
       scoreEl.style.color = '#ff6b6b'
     }
@@ -267,127 +327,190 @@ function animate() {
       }
     }
     
-    // Check gate collisions - only rebuild if count actually changes
     const gateCollision = gateSpawner.checkCollision(player.mesh)
     if (gateCollision) {
       const currentCount = crowdManager.getRemainingCount()
       const newCount = applyGateEffect(currentCount, gateCollision.type, gateCollision.value)
-      if (newCount !== currentCount) {  // Only rebuild if count changes!
+      if (newCount !== currentCount) {
         crowdManager.rebuild(newCount)
       }
-      scoreEl.style.color = '#ffff00' // Yellow flash
+      scoreEl.style.color = '#ffff00'
     }
   }
   
   // ===== END ZONE LOGIC =====
-  // Check if player has reached end zone (using distance, not Z position)
   const playerZ = player.mesh.position.z
   
-  // Trigger end zone when distance >= END_ZONE_DISTANCE
+  // Trigger end zone
   if (!endZoneTriggered && distance >= END_ZONE_DISTANCE) {
-    console.log('[EndZone] Player reached end zone! distance:', distance, 'playerZ:', playerZ)
+    console.log('[EndZone] Player reached end zone!')
     endZoneTriggered = true
     inEndZone = true
+    battleState = 'slowing'
+    battleTimer = 0
     
-    // Spawn enemy crowd - spawn at a position relative to player
-    const difficulty = Math.min(1.5, 1 + (score / 2000))  // Difficulty scales with score
+    const difficulty = Math.min(1.5, 1 + (score / 2000))
     enemyCrowd.spawn(difficulty, playerZ)
     
-    // SLOW DOWN immediately when entering end zone!
+    // Start slowing down
     speed = speed * 0.3
     
-    // Clear all gates when entering end zone
     gateSpawner.clearAll()
     
-    console.log('[EndZone] Enemy count:', enemyCrowd.getCount(), 'Enemy zone Z:', enemyCrowd.getEnemyZoneZ())
-    
-    // Update UI to show battle mode
+    // Show BOSS text (will be created below)
     scoreEl.style.color = '#ff0000'
-    const enemyZ = enemyCrowd.getEnemyZoneZ()
-    scoreEl.textContent = `⚔️ 終點戰! 我方:${crowdManager.getRemainingCount()} 敵人:${enemyCrowd.getCount()} EZ:${enemyZ} PZ:${playerZ}`
+    console.log('[EndZone] Enemy count:', enemyCrowd.getCount())
   }
   
-  // Battle mode: when player reaches enemy zone
-  if (inEndZone && !gameOver && !gameWon) {
+  // ===== BATTLE STATE MACHINE =====
+  if (inEndZone) {
     const myCount = crowdManager.getRemainingCount()
     const enemyCount = enemyCrowd.getCount()
     
-    if (!inBattle) {
-      // Waiting for swipe up to start battle
-      // Show instruction
-      scoreEl.textContent = `⚔️ 向上掃開始戰鬥! 👥${myCount} vs 💀${enemyCount}`
-      
-      // Check for auto-start if close enough
-      if (enemyCrowd.hasReachedEnemyZone(playerZ)) {
-        inBattle = true
-      }
-    } else {
-      // Battle in progress - slow movement
-      speed = 0.05
-      
-      // Update enemy animation
-      enemyCrowd.update(Date.now() * 0.001)
-      
-      // Battle UI
-      scoreEl.textContent = `⚔️ 決戰! 👥${myCount} vs 💀${enemyCount}`
-      
-      // Battle logic: every few frames, one enemy and one crowd member eliminate each other
-      // Faster clash rate!
-      if (Math.random() < 0.1 && myCount > 0 && enemyCount > 0) {
-        // Both sides lose one
-        crowdManager.rebuild(Math.max(0, myCount - 1))
-        enemyCrowd.eliminateOne()
+    switch (battleState) {
+      case 'slowing':
+        // Slowing down for 1.5 seconds (90 frames at 60fps)
+        battleTimer++
         
-        const newMyCount = crowdManager.getRemainingCount()
-        const newEnemyCount = enemyCrowd.getCount()
-        
-        console.log('[Battle] Clash! My:', newMyCount, 'Enemy:', newEnemyCount)
-        
-        if (newMyCount <= 0) {
-          // Defeat!
-          gameOver = true
-          scoreEl.innerHTML = `💀 敗北!<br>敵人: ${newEnemyCount}<br><small>Tap to restart</small>`
-          scoreEl.style.color = '#ff0000'
-        } else if (newEnemyCount <= 0) {
-          // Victory!
-          gameWon = true
-          scoreEl.innerHTML = `🎉 勝利!<br>剩餘: ${newMyCount}<br>Score: ${score}<br><small>Tap to continue</small>`
-          scoreEl.style.color = '#00ff00'
+        // Show BOSS text flashing
+        if (bossTextSprite) {
+          bossTextSprite.visible = (Math.floor(battleTimer / 10) % 2 === 0)
         }
-      }
+        
+        if (battleTimer >= 90) {  // 1.5 seconds
+          // Stop completely!
+          speed = 0
+          battleState = 'waiting'
+          battleTimer = 0
+          
+          // Create BOSS text if not exists
+          if (!bossTextSprite) {
+            bossTextSprite = createTextSprite('BOSS', '#ff0000', 4)
+            bossTextSprite.position.set(0, 4, playerZ - 5)
+            scene.add(bossTextSprite)
+          }
+        }
+        
+        scoreEl.textContent = `⚔️ BOSS戰! 👥${myCount} vs 💀${enemyCount} (減速中...)`
+        break
+        
+      case 'waiting':
+        // Stopped, waiting for player to swipe up
+        if (bossTextSprite) {
+          // Flash for 2 seconds then hide
+          if (battleTimer < 120) {  // 2 seconds
+            bossTextSprite.visible = (Math.floor(battleTimer / 10) % 2 === 0)
+          } else {
+            bossTextSprite.visible = false
+          }
+        }
+        
+        battleTimer++
+        scoreEl.textContent = `⚔️ 向上掃開始戰鬥! 👥${myCount} vs 💀${enemyCount}`
+        break
+        
+      case 'charging':
+        // Both sides charge toward each other!
+        battleTimer++
+        
+        // Charging animation: 1 second to meet in middle
+        const chargeProgress = Math.min(1, battleTimer / 60)  // 1 second charge
+        chargePosition = playerZ + (enemyCrowd.getEnemyZoneZ() - playerZ) * chargeProgress
+        
+        // Move crowd forward
+        crowdManager.setCustomZ(playerZ + (enemyCrowd.getEnemyZoneZ() - playerZ) * chargeProgress * 0.4)
+        
+        // Move enemies backward (toward player)
+        enemyCrowd.setCustomZ(enemyCrowd.getEnemyZoneZ() - (enemyCrowd.getEnemyZoneZ() - playerZ) * chargeProgress * 0.4)
+        
+        enemyCrowd.update(Date.now() * 0.001)
+        
+        scoreEl.textContent = `⚔️ 衝啊! 👥${myCount} vs 💀${enemyCount}`
+        
+        if (battleTimer >= 60) {  // 1 second charge
+          battleState = 'battling'
+          battleTimer = 0
+        }
+        break
+        
+      case 'battling':
+        // Battle in progress - clash and eliminate
+        speed = 0
+        battleTimer++
+        
+        enemyCrowd.update(Date.now() * 0.001)
+        
+        // Clash every few frames
+        if (battleTimer % 30 === 0 && myCount > 0 && enemyCount > 0) {
+          crowdManager.rebuild(Math.max(0, myCount - 1))
+          enemyCrowd.eliminateOne()
+          
+          const newMyCount = crowdManager.getRemainingCount()
+          const newEnemyCount = enemyCrowd.getCount()
+          
+          console.log('[Battle] Clash! My:', newMyCount, 'Enemy:', newEnemyCount)
+          
+          scoreEl.textContent = `⚔️ 決戰! 👥${newMyCount} vs 💀${newEnemyCount}`
+          
+          if (newMyCount <= 0) {
+            // Defeat!
+            battleState = 'ended'
+            finalResult = 'lose'
+            gameOver = true
+            
+            // Show LOSS text
+            resultTextSprite = createTextSprite('LOSS', '#ff0000', 5)
+            resultTextSprite.position.set(0, 3, playerZ)
+            scene.add(resultTextSprite)
+            
+            scoreEl.innerHTML = `💀 敗北!<br>敵人: ${newEnemyCount}<br><small>Tap to restart</small>`
+          } else if (newEnemyCount <= 0) {
+            // Victory!
+            battleState = 'ended'
+            finalResult = 'win'
+            gameWon = true
+            
+            // Show WIN text
+            resultTextSprite = createTextSprite('WIN', '#00ff00', 5)
+            resultTextSprite.position.set(0, 3, playerZ)
+            scene.add(resultTextSprite)
+            
+            scoreEl.innerHTML = `🎉 勝利!<br>剩餘: ${newMyCount}<br>Score: ${score}<br><small>Tap to continue</small>`
+          }
+        }
+        break
     }
   }
-   
-  // Stop spawning when in end zone
+  
+  // Stop spawning in end zone
   if (inEndZone) {
-    // Don't spawn new obstacles/gates in end zone
+    // Don't spawn new obstacles/gates
   }
-
-  // Apply gate effect to crowd count (use stored value!)
+  
+  // Apply gate effect
   function applyGateEffect(currentCount: number, type: string, value: number): number {
     let newCount = currentCount
     
     switch (type) {
-      case 'shopping': // Green: +value
+      case 'shopping':
         newCount = currentCount + value
         break
-      case 'sparkle': // Yellow: ×value
+      case 'sparkle':
         newCount = Math.floor(currentCount * value)
         break
-      case 'bomb': // Red: -value
+      case 'bomb':
         newCount = currentCount - value
         break
     }
     
-    // Clamp to [0, 50]
     return Math.max(0, Math.min(50, newCount))
   }
   
-  // Recover speed
-  if (speedRecoveryTimer > 0) {
+  // Recover speed (not in end zone)
+  if (speedRecoveryTimer > 0 && !inEndZone) {
     speedRecoveryTimer--
     if (speedRecoveryTimer === 0) {
-      speed = 0.28  // 70% of original
+      speed = 0.28
       scoreEl.style.color = '#fff'
     }
   }
@@ -408,24 +531,16 @@ function animate() {
   camera.position.y = 5
   camera.lookAt(0, 0, player.mesh.position.z)
   
-  // Score with crowd count
+  // Score
   distance += speed
   score = Math.floor(distance) + coins * 10
   
-  // Build debug info (always show basic info)
+  // Debug info (only show when not in battle states)
   const crowdCount = crowdManager.getRemainingCount()
-  let debugInfo = `👥 ${crowdCount} | 🛒 ${score} 🪙 ${coins} ❤️ ${lives} | D:${Math.floor(distance)} E:${endZoneTriggered} inEZ:${inEndZone}`
-  
-  // Add enemy debug info if in end zone
-  if (inEndZone && !gameOver && !gameWon) {
-    try {
-      debugInfo += ` | EN:${enemyCrowd.getCount()} EZ:${enemyCrowd.getEnemyZoneZ()} PZ:${Math.floor(playerZ)}`
-    } catch (e) {
-      debugInfo += ` | ERROR getting enemy info`
-    }
+  if (battleState === 'none') {
+    let debugInfo = `👥 ${crowdCount} | 🛒 ${score} 🪙 ${coins} ❤️ ${lives} | D:${Math.floor(distance)}`
+    scoreEl.textContent = debugInfo
   }
-  
-  scoreEl.textContent = debugInfo
   
   renderer.render(scene, camera)
 }
