@@ -100,15 +100,15 @@ battleOverlay.style.cssText = `
 `
 document.body.appendChild(battleOverlay)
 
-// Create battle status overlay (center - for browser)
+// Create battle status overlay (bottom center - for both mobile and browser)
 const battleStatusOverlay = document.createElement('div')
 battleStatusOverlay.style.cssText = `
   position: fixed;
-  top: 20%;
+  bottom: 25%;
   left: 50%;
   transform: translateX(-50%);
   color: #ffffff;
-  font-size: 36px;
+  font-size: 32px;
   font-weight: bold;
   text-shadow: 3px 3px 6px #000, -1px -1px 0 #000;
   pointer-events: none;
@@ -118,6 +118,21 @@ battleStatusOverlay.style.cssText = `
   font-family: Arial, sans-serif;
 `
 document.body.appendChild(battleStatusOverlay)
+
+// Debug camera info overlay
+const debugOverlay = document.createElement('div')
+debugOverlay.style.cssText = `
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  color: #00ff00;
+  font-size: 12px;
+  font-family: monospace;
+  pointer-events: none;
+  z-index: 100;
+  text-shadow: 1px 1px 2px #000;
+`
+document.body.appendChild(debugOverlay)
 
 // Input handling
 let inputLeft = false
@@ -410,12 +425,12 @@ function animate() {
     console.log('[EndZone] Enemy count:', enemyCrowd.getCount())
   }
   
-  // Also start camera transition BEFORE end zone (when approaching)
-  if (!endZoneTriggered && distance >= END_ZONE_DISTANCE - 100) {
+  // Also start camera transition BEFORE end zone (when approaching) - only start at distance 850
+  if (!endZoneTriggered && distance >= END_ZONE_DISTANCE - 50) {
     // Gradually move camera forward as we approach end zone
-    const approachProgress = (distance - (END_ZONE_DISTANCE - 100)) / 100
-    cameraTargetY = 5 + (10 - 5) * approachProgress
-    cameraTargetZ = 10 + (18 - 10) * approachProgress
+    const approachProgress = (distance - (END_ZONE_DISTANCE - 50)) / 50
+    cameraTargetY = 5 + (10 - 5) * Math.min(1, approachProgress)
+    cameraTargetZ = 10 + (18 - 10) * Math.min(1, approachProgress)
     cameraTransitioning = true
   }
   
@@ -597,6 +612,9 @@ function animate() {
     battleOverlay.style.display = 'none'
     battleStatusOverlay.style.display = 'none'
   }
+  
+  // Update debug camera info
+  debugOverlay.textContent = `Cam: y=${camera.position.y.toFixed(1)} z=${camera.position.z.toFixed(1)} | D:${Math.floor(distance)} | State:${battleState}`
   
   // Camera - gradual transition to battle view (3 seconds = lerp 0.02)
   const cameraLerp = cameraTransitioning ? 0.02 : 1  // 3 seconds to transition
