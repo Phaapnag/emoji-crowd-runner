@@ -76,7 +76,7 @@ let resultTextSprite: THREE.Mesh | null = null
 
 // Camera transition
 let cameraTargetY = 5
-let cameraTargetZ = 10
+let cameraTargetZ = 10  // Initial offset from player (smaller = zoom in)
 let cameraTransitioning = false
 
 // UI elements
@@ -442,15 +442,17 @@ function animate() {
   
   // Also start camera transition BEFORE end zone (when approaching)
   // Y starts at distance 900, Z starts at distance 850
+  // Note: Smaller Z = zoom IN, Larger Z = zoom OUT
   if (!endZoneTriggered && distance >= 850) {
     // Gradually move camera forward as we approach end zone
     const approachProgress = (distance - 850) / 50  // Z: 850-900
-    cameraTargetZ = 10 + (18 - 10) * Math.min(1, approachProgress)
+    // Zoom IN: Z goes from 10 DOWN to 6 (closer to player = bigger view)
+    cameraTargetZ = 10 + (6 - 10) * Math.min(1, approachProgress)
     cameraTransitioning = true
   }
   
   if (!endZoneTriggered && distance >= 900) {
-    // Y starts at 900
+    // Y starts at 900 - goes higher for better view
     const yProgress = (distance - 900) / 50  // Y: 900-950
     cameraTargetY = 5 + (10 - 5) * Math.min(1, yProgress)
   }
@@ -568,25 +570,25 @@ function animate() {
           if (newMyCount <= 0) {
             battleState = 'ended'
             finalResult = 'lose'
-            gameOver = true
+            // Don't set gameOver yet - wait for player input
             battleStatusOverlay.style.display = 'none'
             
             resultTextSprite = createTextSprite('LOSS', '#ff0000', 3)
             resultTextSprite.position.set(0, 3, playerZ)
             scene.add(resultTextSprite)
             
-            scoreEl.innerHTML = `💀 敗北!<br>敵人: ${newEnemyCount}<br><small>Tap to restart</small>`
+            scoreEl.innerHTML = `💀 敗北!<br>敵人: ${newEnemyCount}<br><small>Tab/Click to restart</small>`
           } else if (newEnemyCount <= 0) {
             battleState = 'ended'
             finalResult = 'win'
-            gameWon = true
+            // Don't set gameWon yet - wait for player input
             battleStatusOverlay.style.display = 'none'
             
             resultTextSprite = createTextSprite('WIN', '#00ff00', 3)
             resultTextSprite.position.set(0, 3, playerZ)
             scene.add(resultTextSprite)
             
-            scoreEl.innerHTML = `🎉 勝利!<br>剩餘: ${newMyCount}<br>Score: ${score}<br><small>Tap to continue</small>`
+            scoreEl.innerHTML = `🎉 勝利!<br>剩餘: ${newMyCount}<br>Score: ${score}<br><small>Tab/Click to continue</small>`
           }
         }
         break
@@ -649,7 +651,7 @@ function animate() {
     camera.lookAt(0, 2, player.mesh.position.z)
     
     // Stop transitioning when close enough
-    if (Math.abs(camera.position.y - cameraTargetY) < 0.1) {
+    if (Math.abs(camera.position.y - cameraTargetY) < 0.1 && Math.abs(camera.position.z - (player.mesh.position.z + cameraTargetZ)) < 0.5) {
       cameraTransitioning = false
     }
   } else {
