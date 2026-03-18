@@ -426,6 +426,9 @@ function animate() {
     const difficulty = Math.min(1.5, 1 + (score / 2000))
     enemyCrowd.spawn(difficulty, playerZ)
     
+    // DEBUG: Show enemy spawn positions
+    console.log('[DEBUG] After spawn - playerZ:', playerZ, 'enemyZ:', enemyCrowd.getEnemyZoneZ(), 'camera.position.z:', camera.position.z)
+    
     speed = speed * 0.3
     
     // Clear gates AND obstacles

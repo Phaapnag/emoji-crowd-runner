@@ -35,16 +35,17 @@ export class EnemyCrowd {
     // Spawn BEHIND player - player moves in negative direction (-50), so behind is POSITIVE (+30)
     // This means enemies will chase the player from behind!
     // Player is at -50, enemies should spawn at -50 + 30 = -20 (behind player in positive direction)
-    this.spawnZ = playerZ + 30  // 30 units behind player
+    // FIX: Spawn closer! Only 10 units behind player instead of 30
+    this.spawnZ = playerZ + 10  // 10 units behind player (more visible!)
     
     // Spread enemies in a wider area (like player crowd)
     for (let i = 0; i < this.count; i++) {
       const types: EnemyType[] = ['bomb', 'skull', 'ghost']
       const type = types[Math.floor(Math.random() * types.length)]
       
-      // Spread like player crowd: X: -3 to +3, Z: spread out
+      // Spread like player crowd: X: -3 to +3, Z: TIGHTER spread (only 3 units)
       const x = (Math.random() - 0.5) * 6  // -3 to +3
-      const z = this.spawnZ + (Math.random() * 8)  // Spread over 8 units
+      const z = this.spawnZ + (Math.random() * 3)  // Spread over 3 units only (tighter!)
       
       this.positions.push({
         x,
