@@ -519,31 +519,43 @@ function animate() {
         
         battleTimer++
         
-        // SLOW charge animation: 2 seconds to meet (120 frames)
-        const chargeProgress = Math.min(1, battleTimer / 120)
+        // FAST charge animation: 1 second to meet (60 frames)
+        // Make movement more visible by using larger step per frame
+        const chargeProgress = Math.min(1, battleTimer / 60)
         const enemyZ = enemyCrowd.getEnemyZoneZ()
         
-        // Enemies move toward player, but STOP at player position (don't pass!)
-        const minEnemyZ = playerZ + 2
-        const enemyMoveZ = enemyZ - (enemyZ - minEnemyZ) * chargeProgress
-        
-        // Crowd moves toward enemies - keep updating every frame!
-        const crowdMoveZ = playerZ + (enemyZ - playerZ) * chargeProgress * 0.5
-        
-        // Debug - visible in console
-        if (battleTimer % 30 === 0) {
-          console.log('⚔️ CHARGE:', playerZ.toFixed(1), '→ enemyZ:', enemyZ.toFixed(1), '→ moveZ:', crowdMoveZ.toFixed(1), enemyMoveZ.toFixed(1))
+        // Debug - show positions every frame during charge
+        if (battleTimer % 10 === 0) {
+          console.log('⚔️ CHARGE frame', battleTimer, '| playerZ:', playerZ.toFixed(1), '| enemyZ:', enemyZ.toFixed(1), '| progress:', chargeProgress.toFixed(2))
         }
         
-        // Apply positions - keep setting every frame so they move continuously
-        crowdManager.setCustomZ(crowdMoveZ)
-        enemyCrowd.setCustomZ(enemyMoveZ)
+        // Enemies move toward player - FASTER and more visible!
+        // Target: stop 3 units in front of player
+        const enemyTargetZ = playerZ + 3
+        const enemyMoveAmount = (enemyZ - enemyTargetZ) * 0.08  // 8% per frame = fast convergence
+        const newEnemyZ = enemyZ - enemyMoveAmount
+        
+        // Crowd moves toward enemies - FASTER!
+        const crowdCurrentZ = playerZ  // Crowd is at player position initially
+        const crowdTargetZ = enemyTargetZ - 4  // Stop 4 units before enemies
+        const crowdMoveAmount = (crowdTargetZ - crowdCurrentZ) * 0.08  // 8% per frame
+        const newCrowdZ = crowdCurrentZ + crowdMoveAmount
+        
+        // Debug - show calculated positions
+        if (battleTimer % 10 === 0) {
+          console.log('  → enemyMove:', enemyMoveAmount.toFixed(2), '→ newEnemyZ:', newEnemyZ.toFixed(1))
+          console.log('  → crowdMove:', crowdMoveAmount.toFixed(2), '→ newCrowdZ:', newCrowdZ.toFixed(1))
+        }
+        
+        // Apply positions
+        enemyCrowd.setCustomZ(newEnemyZ)
+        crowdManager.setCustomZ(newCrowdZ)
         
         enemyCrowd.update(Date.now() * 0.001)
         
         scoreEl.textContent = `⚔️ 衝啊! 👥${myCount} vs 💀${enemyCount}`
         
-        if (battleTimer >= 120) {
+        if (battleTimer >= 60) {
           battleState = 'battling'
           battleTimer = 0
         }
