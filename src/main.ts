@@ -535,7 +535,7 @@ function animate() {
         
         // Enemies move TOWARD player - FIXED target, not playerZ!
         // FIX: Use fixed target (initial spawn position), not dynamic playerZ
-        const enemyFixedTarget = -55  // Fixed target
+        const enemyFixedTarget = -50  // Fixed target - try going further forward!
         const enemyMoveAmount = (enemyFixedTarget - enemyZ) * 0.2  // 20% per frame
         const newEnemyZ = enemyZ + enemyMoveAmount
         
