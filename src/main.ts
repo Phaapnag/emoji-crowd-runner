@@ -533,17 +533,16 @@ function animate() {
           console.log('⚔️ CHARGE frame', battleTimer, '| playerZ:', playerZ.toFixed(1), '| enemyZ:', enemyZ.toFixed(1), '| progress:', chargeProgress.toFixed(2))
         }
         
-        // Enemies move toward player
-        // enemyZ is the current enemy position
-        const enemyTargetZ = playerZ + 3  // Stop 3 units behind player
-        const enemyMoveAmount = (enemyTargetZ - enemyZ) * 0.1  // 10% per frame
+        // Enemies move TOWARD player (from -60 toward playerZ at -50)
+        // FIX: target is playerZ itself, not playerZ + 3!
+        const enemyTargetZ = playerZ  // Enemies should go to player's position
+        const enemyMoveAmount = (enemyTargetZ - enemyZ) * 0.1  // 10% per frame toward player
         const newEnemyZ = enemyZ + enemyMoveAmount
         
-        // Crowd moves toward enemies - FIX: use current position, not playerZ!
-        const currentCrowdZ = playerZ  // Crowd starts at player position
-        const crowdTargetZ = enemyTargetZ - 3  // Stop 3 units before enemies
-        const crowdMoveAmount = (crowdTargetZ - currentCrowdZ) * 0.1  // 10% per frame toward target
-        const newCrowdZ = currentCrowdZ + crowdMoveAmount
+        // Crowd moves FORWARD to meet enemies (from playerZ toward enemyZ)
+        const crowdTargetZ = playerZ - 2  // Move 2 units forward (more negative = forward!)
+        const crowdMoveAmount = (crowdTargetZ - playerZ) * 0.1  // 10% per frame
+        const newCrowdZ = playerZ + crowdMoveAmount
         
         // Debug - show calculated positions
         if (battleTimer % 10 === 0) {
