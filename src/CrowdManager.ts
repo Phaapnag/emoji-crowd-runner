@@ -153,6 +153,15 @@ export class CrowdManager {
     return this.positions.map(p => p.z)
   }
   
+  // Get crowd spread info
+  getCrowdSpread(): string {
+    if (this.positions.length === 0) return 'empty'
+    const zs = this.positions.map(p => p.z)
+    const min = Math.min(...zs).toFixed(1)
+    const max = Math.max(...zs).toFixed(1)
+    return `${min} ~ ${max}`
+  }
+  
   // Rebuild crowd with new count (for gate effects) - ADD new members, don't re-randomize existing
   rebuild(newCount: number) {
     // First, clean up any null entries from array
