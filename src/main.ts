@@ -436,7 +436,7 @@ function animate() {
     levelSpawner.clearAll()
     
     // Start camera transition to battle view (3 seconds = lerp 0.02)
-    cameraTargetY = 10  // Higher to see enemies
+    cameraTargetY = 7  // Lower to see enemies better (was 10)
     cameraTargetZ = 18  // Further back
     cameraTransitioning = true
     
@@ -533,17 +533,17 @@ function animate() {
           console.log('⚔️ CHARGE frame', battleTimer, '| playerZ:', playerZ.toFixed(1), '| enemyZ:', enemyZ.toFixed(1), '| progress:', chargeProgress.toFixed(2))
         }
         
-        // Enemies move toward player - FASTER and more visible!
-        // FIX: enemies should move TOWARD player (from behind = positive direction toward negative playerZ)
-        // If enemyZ is -40 and playerZ is -50, enemies need to go MORE negative to reach player
-        const enemyTargetZ = playerZ - 5  // 5 units behind player (more negative = closer to player)
-        const enemyMoveAmount = (enemyTargetZ - enemyZ) * 0.08  // Move TOWARD target
-        const newEnemyZ = enemyZ + enemyMoveAmount  // FIXED: add instead of subtract!
+        // Enemies move toward player
+        // enemyZ is the current enemy position
+        const enemyTargetZ = playerZ + 3  // Stop 3 units behind player
+        const enemyMoveAmount = (enemyTargetZ - enemyZ) * 0.1  // 10% per frame
+        const newEnemyZ = enemyZ + enemyMoveAmount
         
-        // Crowd also moves toward enemies
-        const crowdTargetZ = enemyTargetZ + 5  // Stop 5 units before enemies
-        const crowdMoveAmount = (crowdTargetZ - playerZ) * 0.08
-        const newCrowdZ = playerZ + crowdMoveAmount
+        // Crowd moves toward enemies - FIX: use current position, not playerZ!
+        const currentCrowdZ = playerZ  // Crowd starts at player position
+        const crowdTargetZ = enemyTargetZ - 3  // Stop 3 units before enemies
+        const crowdMoveAmount = (crowdTargetZ - currentCrowdZ) * 0.1  // 10% per frame toward target
+        const newCrowdZ = currentCrowdZ + crowdMoveAmount
         
         // Debug - show calculated positions
         if (battleTimer % 10 === 0) {
