@@ -558,7 +558,7 @@ function animate() {
         
         scoreEl.textContent = `⚔️ 衝啊! 👥${myCount} vs 💀${enemyCount}`
         
-        if (battleTimer >= 60) {
+        if (battleTimer >= 30) {  // Short charging (0.5 seconds) then continuous battle
           battleState = 'battling'
           battleTimer = 0
         }
@@ -570,8 +570,28 @@ function animate() {
         speed = 0
         battleTimer++
         
+        // CONTINUOUS MOVEMENT during battle!
+        // Both enemies and crowd move toward each other while fighting
+        const battleEnemyZ = enemyCrowd.getEnemyZoneZ()
+        
+        // Enemies move toward player (same as charging but continuous)
+        const battleEnemyTarget = playerZ  // Go to player position
+        const battleEnemyMove = (battleEnemyTarget - battleEnemyZ) * 0.05  // 5% per frame
+        const newBattleEnemyZ = battleEnemyZ + battleEnemyMove
+        
+        // Crowd moves forward toward enemies
+        const battleCrowdZ = playerZ  // Start at player
+        const battleCrowdTarget = battleEnemyTarget - 3  // Stop 3 units before enemies
+        const battleCrowdMove = (battleCrowdTarget - battleCrowdZ) * 0.05
+        const newBattleCrowdZ = battleCrowdZ + battleCrowdMove
+        
+        // Apply positions
+        enemyCrowd.setCustomZ(newBattleEnemyZ)
+        crowdManager.setCustomZ(newBattleCrowdZ)
+        
         enemyCrowd.update(Date.now() * 0.001)
         
+        // Battle clash - every 30 frames (0.5 seconds)
         if (battleTimer % 30 === 0 && myCount > 0 && enemyCount > 0) {
           crowdManager.rebuild(Math.max(0, myCount - 1))
           enemyCrowd.eliminateOne()
