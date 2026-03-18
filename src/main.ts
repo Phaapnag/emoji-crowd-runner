@@ -416,6 +416,7 @@ function animate() {
   
   // Trigger end zone
   if (!endZoneTriggered && distance >= END_ZONE_DISTANCE) {
+    console.log('🔥🔥🔥 NEW CODE LOADED - END ZONE TRIGGERED 🔥🔥🔥')
     console.log('[EndZone] Player reached end zone!')
     endZoneTriggered = true
     inEndZone = true
