@@ -148,6 +148,11 @@ export class CrowdManager {
     return sum / this.meshes.length
   }
   
+  // Get relative Z positions of crowd members (for debugging)
+  getCrowdRelativeZ(): number[] {
+    return this.positions.map(p => p.z)
+  }
+  
   // Rebuild crowd with new count (for gate effects) - ADD new members, don't re-randomize existing
   rebuild(newCount: number) {
     // First, clean up any null entries from array

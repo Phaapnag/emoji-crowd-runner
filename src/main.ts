@@ -548,7 +548,9 @@ function animate() {
         const newCrowdZ = currentCrowdPos + crowdMoveAmount
         
         // Debug - show EVERY frame during battle!
-        console.log('⚔️ frame:', battleTimer, '| enemyZ:', enemyZ.toFixed(1), '| crowdZ:', currentCrowdPos.toFixed(1), '| target:', crowdTargetZ)
+        // Also show crowd relative positions
+        const crowdRelZ = crowdManager.getCrowdRelativeZ ? crowdManager.getCrowdRelativeZ() : 'N/A'
+        console.log('⚔️ frame:', battleTimer, '| enemyZ:', enemyZ.toFixed(1), '| crowdZ:', currentCrowdPos.toFixed(1), '| crowdRelZ:', Array.isArray(crowdRelZ) ? `[${crowdRelZ.slice(0,5).join(',')}...]` : crowdRelZ, '| target:', crowdTargetZ)
         
         // Apply positions
         enemyCrowd.setCustomZ(newEnemyZ)
