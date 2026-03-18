@@ -556,19 +556,53 @@ function animate() {
         
         enemyCrowd.update(Date.now() * 0.001)
         
-        scoreEl.textContent = `⚔️ 衝啊! 👥${myCount} vs 💀${enemyCount}`
-        
-        if (battleTimer >= 120) {  // Slower charging (2 seconds = 120 frames)
-          battleState = 'battling'
-          battleTimer = 0
+        // BATTLE CLASH during charging! (not after!)
+        if (battleTimer % 30 === 0 && myCount > 0 && enemyCount > 0) {
+          crowdManager.rebuild(Math.max(0, myCount - 1))
+          enemyCrowd.eliminateOne()
+          
+          const newMyCount = crowdManager.getRemainingCount()
+          const newEnemyCount = enemyCrowd.getCount()
+          
+          console.log('[Battle] Clash during charge! My:', newMyCount, 'Enemy:', newEnemyCount)
+          
+          // Show updated counts
+          battleStatusOverlay.innerHTML = `👥 ${newMyCount} vs 💀 ${newEnemyCount}`
+          battleStatusOverlay.style.display = 'block'
+          
+          scoreEl.textContent = `⚔️ 決戰! 👥${newMyCount} vs 💀${newEnemyCount}`
+          
+          // Check for winner immediately!
+          if (newMyCount <= 0) {
+            battleState = 'ended'
+            finalResult = 'lose'
+            battleStatusOverlay.style.display = 'none'
+            
+            resultTextSprite = createTextSprite('LOSS', '#ff0000', 3)
+            resultTextSprite.position.set(0, 3, playerZ)
+            scene.add(resultTextSprite)
+            
+            scoreEl.innerHTML = `💀 敗北!<br>敵人: ${newEnemyCount}<br><small>Tab/Click to restart</small>`
+          } else if (newEnemyCount <= 0) {
+            battleState = 'ended'
+            finalResult = 'win'
+            battleStatusOverlay.style.display = 'none'
+            
+            resultTextSprite = createTextSprite('WIN', '#00ff00', 3)
+            resultTextSprite.position.set(0, 3, playerZ)
+            scene.add(resultTextSprite)
+          }
         }
+        
+        // Keep charging until one side is eliminated (no fixed frame limit!)
         break
         
       case 'battling':
+        // This case is now obsolete - everything happens in 'charging'
         battleOverlay.style.display = 'none'
-        
         speed = 0
         battleTimer++
+        // ... rest of code
         
         // CONTINUOUS MOVEMENT during battle!
         // Both enemies and crowd move toward each other while fighting
