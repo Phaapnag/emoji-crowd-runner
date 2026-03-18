@@ -544,10 +544,8 @@ function animate() {
         const crowdMoveAmount = (crowdTargetZ - playerZ) * 0.1  // 10% per frame
         const newCrowdZ = playerZ + crowdMoveAmount
         
-        // Debug - show calculated positions
-        if (battleTimer % 10 === 0) {
-          console.log('  → playerZ:', playerZ.toFixed(1), 'crowdTargetZ:', crowdTargetZ.toFixed(1), 'crowdMove:', crowdMoveAmount.toFixed(2), '→ newCrowdZ:', newCrowdZ.toFixed(1))
-        }
+        // Debug - show EVERY frame during battle!
+        console.log('⚔️ frame:', battleTimer, '| playerZ:', playerZ.toFixed(1), 'crowdTargetZ:', crowdTargetZ.toFixed(1), 'crowdMove:', crowdMoveAmount.toFixed(2), '→ newCrowdZ:', newCrowdZ.toFixed(1))
         
         // Apply positions
         enemyCrowd.setCustomZ(newEnemyZ)
