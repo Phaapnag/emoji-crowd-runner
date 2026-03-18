@@ -530,15 +530,10 @@ function animate() {
         // Crowd moves toward enemies - keep updating every frame!
         const crowdMoveZ = playerZ + (enemyZ - playerZ) * chargeProgress * 0.5
         
-        // Debug
-        console.log('[Charging]', {
-          playerZ: playerZ.toFixed(1),
-          enemyZ: enemyZ.toFixed(1),
-          chargeProgress: chargeProgress.toFixed(2),
-          crowdMoveZ: crowdMoveZ.toFixed(1),
-          enemyMoveZ: enemyMoveZ.toFixed(1),
-          crowdOverrideZ: 1 // Will check in CrowdManager
-        })
+        // Debug - visible in console
+        if (battleTimer % 30 === 0) {
+          console.log('⚔️ CHARGE:', playerZ.toFixed(1), '→ enemyZ:', enemyZ.toFixed(1), '→ moveZ:', crowdMoveZ.toFixed(1), enemyMoveZ.toFixed(1))
+        }
         
         // Apply positions - keep setting every frame so they move continuously
         crowdManager.setCustomZ(crowdMoveZ)

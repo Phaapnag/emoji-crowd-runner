@@ -274,9 +274,9 @@ export class CrowdManager {
     const useX = this.overrideX !== null ? this.overrideX : playerX
     const useZ = this.overrideZ !== null ? this.overrideZ : playerZ
     
-    // Debug
+    // Debug - show when override is active
     if (this.overrideZ !== null) {
-      console.log('[CrowdManager] Using override Z:', this.overrideZ.toFixed(1), 'playerZ:', playerZ.toFixed(1))
+      console.log('🎭 Crowd overrideZ:', this.overrideZ.toFixed(1))
     }
     
     for (let i = 0; i < this.positions.length; i++) {
