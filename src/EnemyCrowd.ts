@@ -83,12 +83,14 @@ export class EnemyCrowd {
   
   // Set custom Z for charging animation - set position directly
   setCustomZ(z: number) {
+    console.log('[EnemyCrowd] setCustomZ called, z:', z.toFixed(1), 'meshes:', this.meshes.length)
     for (let i = 0; i < this.meshes.length; i++) {
       if (this.meshes[i] && this.positions[i]) {
         // Get the offset from original spawnZ
         const offsetZ = this.positions[i].z - this.spawnZ
         // Set new position based on new Z + offset
         this.meshes[i].position.z = z + offsetZ
+        if (i === 0) console.log('  [Enemy] mesh[0] z:', this.meshes[i].position.z.toFixed(1), 'offsetZ:', offsetZ.toFixed(1))
       }
     }
     this.spawnZ = z

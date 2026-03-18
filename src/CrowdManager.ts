@@ -342,6 +342,8 @@ export class CrowdManager {
 
   // Set custom Z offset for charging animation
   setCustomZ(zOffset: number) {
+    console.log('[CrowdManager] setCustomZ called, zOffset:', zOffset.toFixed(1), 'positions:', this.positions.length)
+    
     // Set override mode - crowd will move to this Z instead of following player
     // Note: Don't add 0.6 here, update() will add it
     this.overrideZ = zOffset
@@ -358,6 +360,7 @@ export class CrowdManager {
         x: targetX,
         z: targetZ
       }
+      if (i === 0) console.log('  [Crowd] prevPositions[0] z:', targetZ.toFixed(1))
     }
   }
   
