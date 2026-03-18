@@ -533,10 +533,11 @@ function animate() {
           console.log('⚔️ CHARGE frame', battleTimer, '| playerZ:', playerZ.toFixed(1), '| enemyZ:', enemyZ.toFixed(1), '| progress:', chargeProgress.toFixed(2))
         }
         
-        // Enemies move TOWARD player (from -60 toward playerZ at -50)
-        // FIX: target is playerZ itself, not playerZ + 3!
-        const enemyTargetZ = playerZ  // Enemies should go to player's position
-        const enemyMoveAmount = (enemyTargetZ - enemyZ) * 0.1  // 10% per frame toward player
+        // Enemies move TOWARD player - FIXED target, not playerZ!
+        // FIX: Use fixed target (initial spawn position), not dynamic playerZ
+        const initialEnemyZ = -65  // Fixed spawn position (match EnemyCrowd.ts spawnZ = playerZ - 15)
+        const enemyTargetZ = initialEnemyZ + 5  // Stop 5 units from start (toward player side)
+        const enemyMoveAmount = (enemyTargetZ - enemyZ) * 0.1  // 10% per frame
         const newEnemyZ = enemyZ + enemyMoveAmount
         
         // Crowd moves TOWARD enemies - but FIXED target (not moving with enemy!)
