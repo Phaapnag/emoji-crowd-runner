@@ -558,7 +558,7 @@ function animate() {
         
         scoreEl.textContent = `⚔️ 衝啊! 👥${myCount} vs 💀${enemyCount}`
         
-        if (battleTimer >= 30) {  // Short charging (0.5 seconds) then continuous battle
+        if (battleTimer >= 120) {  // Slower charging (2 seconds = 120 frames)
           battleState = 'battling'
           battleTimer = 0
         }
