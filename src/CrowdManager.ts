@@ -138,6 +138,16 @@ export class CrowdManager {
     return this.meshes.length  // Now that we properly manage the array, just return length
   }
   
+  // Get current Z position of crowd (average of mesh positions)
+  getCurrentZ(): number {
+    if (this.meshes.length === 0) return 0
+    let sum = 0
+    for (const mesh of this.meshes) {
+      if (mesh) sum += mesh.position.z
+    }
+    return sum / this.meshes.length
+  }
+  
   // Rebuild crowd with new count (for gate effects) - ADD new members, don't re-randomize existing
   rebuild(newCount: number) {
     // First, clean up any null entries from array

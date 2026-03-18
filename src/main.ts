@@ -539,10 +539,12 @@ function animate() {
         const enemyMoveAmount = (enemyTargetZ - enemyZ) * 0.1  // 10% per frame toward player
         const newEnemyZ = enemyZ + enemyMoveAmount
         
-        // Crowd moves FORWARD to meet enemies (from playerZ toward enemyZ)
-        const crowdTargetZ = playerZ - 2  // Move 2 units forward (more negative = forward!)
-        const crowdMoveAmount = (crowdTargetZ - playerZ) * 0.1  // 10% per frame
-        const newCrowdZ = playerZ + crowdMoveAmount
+        // Crowd moves FORWARD continuously - use PREVIOUS position, not playerZ!
+        // FIX: Calculate based on previous crowd position, not playerZ
+        const currentCrowdPos = crowdManager.getCurrentZ ? crowdManager.getCurrentZ() : playerZ
+        const crowdTargetZ = currentCrowdPos - 2  // Move 2 units forward from CURRENT position
+        const crowdMoveAmount = (crowdTargetZ - currentCrowdPos) * 0.1  // 10% per frame
+        const newCrowdZ = currentCrowdPos + crowdMoveAmount
         
         // Debug - show EVERY frame during battle!
         console.log('⚔️ frame:', battleTimer, '| playerZ:', playerZ.toFixed(1), 'crowdTargetZ:', crowdTargetZ.toFixed(1), 'crowdMove:', crowdMoveAmount.toFixed(2), '→ newCrowdZ:', newCrowdZ.toFixed(1))
