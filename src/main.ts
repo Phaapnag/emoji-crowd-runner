@@ -535,15 +535,14 @@ function animate() {
         
         // Enemies move TOWARD player - FIXED target, not playerZ!
         // FIX: Use fixed target (initial spawn position), not dynamic playerZ
-        const initialEnemyZ = -65  // Fixed spawn position (match EnemyCrowd.ts spawnZ = playerZ - 15)
-        const enemyTargetZ = initialEnemyZ + 5  // Stop 5 units from start (toward player side)
-        const enemyMoveAmount = (enemyTargetZ - enemyZ) * 0.1  // 10% per frame
+        const enemyFixedTargetZ = -60  // Fixed target 5 units from start
+        const enemyMoveAmount = (enemyFixedTargetZ - enemyZ) * 0.1  // 10% per frame
         const newEnemyZ = enemyZ + enemyMoveAmount
         
         // Crowd moves TOWARD enemies - but FIXED target (not moving with enemy!)
         // FIX: Use the INITIAL enemy spawn position, not current position
-        const initialEnemyZ = -65  // Fixed spawn position (match EnemyCrowd.ts spawnZ = playerZ - 15)
-        const crowdTargetZ = initialEnemyZ + 5  // Stop 5 units before initial enemy position
+        const crowdFixedTargetZ = -60  // Fixed spawn position
+        const crowdTargetZ = crowdFixedTargetZ + 5  // Stop 5 units before initial enemy position
         const currentCrowdPos = crowdManager.getCurrentZ()
         const crowdMoveAmount = (crowdTargetZ - currentCrowdPos) * 0.1  // 10% per frame
         const newCrowdZ = currentCrowdPos + crowdMoveAmount
