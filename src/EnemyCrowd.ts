@@ -67,9 +67,10 @@ export class EnemyCrowd {
       
       this.scene.add(mesh)
       this.meshes.push(mesh)
+      console.log('[EnemyCrowd] Added mesh at x:', x.toFixed(1), 'z:', z.toFixed(1))
     }
     
-    console.log('[EnemyCrowd] Spawned', this.count, 'enemies at z ~', this.spawnZ)
+    console.log('[EnemyCrowd] Spawned', this.count, 'enemies at z ~', this.spawnZ, '(playerZ was:', playerZ, 'so spawnZ should be', playerZ + 30, ')')
   }
   
   // Get enemy count
