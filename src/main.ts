@@ -437,7 +437,7 @@ function animate() {
     
     // Start camera transition to battle view (3 seconds = lerp 0.02)
     cameraTargetY = 7  // Lower to see enemies better (was 10)
-    cameraTargetZ = 18  // Further back
+    cameraTargetZ = 10  // Closer for battle view
     cameraTransitioning = true
     
     scoreEl.style.color = '#ff0000'
