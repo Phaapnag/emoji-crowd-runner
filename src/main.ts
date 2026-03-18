@@ -547,10 +547,10 @@ function animate() {
         const crowdMoveAmount = (crowdTargetZ - currentCrowdPos) * 0.2  // 20% per frame
         const newCrowdZ = currentCrowdPos + crowdMoveAmount
         
-        // Debug - simplified
+        // Debug - show both targets
         const crowdSpread = crowdManager.getCrowdSpread()
         if (battleTimer <= 30 || battleTimer % 30 === 0) {
-          console.log('⚔️', battleTimer, 'enemy:', enemyZ.toFixed(1), 'crowd:', currentCrowdPos.toFixed(1), 'spread:', crowdSpread, 'target:', crowdTargetZ)
+          console.log('⚔️', battleTimer, 'enemy:', enemyZ.toFixed(1), 'crowd:', currentCrowdPos.toFixed(1), 'eTarget:', enemyFixedTarget, 'cTarget:', crowdTargetZ)
         }
         
         // Apply positions
