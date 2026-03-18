@@ -556,8 +556,8 @@ function animate() {
         
         enemyCrowd.update(Date.now() * 0.001)
         
-        // BATTLE CLASH during charging! (every 15 frames for faster combat)
-        if (battleTimer % 15 === 0 && myCount > 0 && enemyCount > 0) {
+        // BATTLE CLASH during charging! (every 8 frames for very fast combat!)
+        if (battleTimer % 8 === 0 && myCount > 0 && enemyCount > 0) {
           crowdManager.rebuild(Math.max(0, myCount - 1))
           enemyCrowd.eliminateOne()
           
