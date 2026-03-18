@@ -59,8 +59,8 @@ let invulnerableTimer = 0
 let gameOver = false
 let gameWon = false
 
-// End zone settings - DEBUG: changed to 50 for quick testing!
-const END_ZONE_DISTANCE = 50
+// End zone settings
+const END_ZONE_DISTANCE = 900
 let inEndZone = false
 let endZoneTriggered = false
 
@@ -530,16 +530,16 @@ function animate() {
         }
         
         // Enemies move toward player - FASTER and more visible!
-        // Target: stop 3 units in front of player
-        const enemyTargetZ = playerZ + 3
-        const enemyMoveAmount = (enemyZ - enemyTargetZ) * 0.08  // 8% per frame = fast convergence
-        const newEnemyZ = enemyZ - enemyMoveAmount
+        // FIX: enemies should move TOWARD player (from behind = positive direction toward negative playerZ)
+        // If enemyZ is -40 and playerZ is -50, enemies need to go MORE negative to reach player
+        const enemyTargetZ = playerZ - 5  // 5 units behind player (more negative = closer to player)
+        const enemyMoveAmount = (enemyTargetZ - enemyZ) * 0.08  // Move TOWARD target
+        const newEnemyZ = enemyZ + enemyMoveAmount  // FIXED: add instead of subtract!
         
-        // Crowd moves toward enemies - FASTER!
-        const crowdCurrentZ = playerZ  // Crowd is at player position initially
-        const crowdTargetZ = enemyTargetZ - 4  // Stop 4 units before enemies
-        const crowdMoveAmount = (crowdTargetZ - crowdCurrentZ) * 0.08  // 8% per frame
-        const newCrowdZ = crowdCurrentZ + crowdMoveAmount
+        // Crowd also moves toward enemies
+        const crowdTargetZ = enemyTargetZ + 5  // Stop 5 units before enemies
+        const crowdMoveAmount = (crowdTargetZ - playerZ) * 0.08
+        const newCrowdZ = playerZ + crowdMoveAmount
         
         // Debug - show calculated positions
         if (battleTimer % 10 === 0) {

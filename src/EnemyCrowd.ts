@@ -32,8 +32,9 @@ export class EnemyCrowd {
     
     const geometry = new THREE.BoxGeometry(0.2, 0.2, 0.2)  // Slightly smaller than player crowd (0.25)
     
-    // Spawn BEHIND player (positive direction = behind in this coordinate system)
-    // Enemies chase the player from behind!
+    // Spawn BEHIND player - player moves in negative direction (-50), so behind is POSITIVE (+30)
+    // This means enemies will chase the player from behind!
+    // Player is at -50, enemies should spawn at -50 + 30 = -20 (behind player in positive direction)
     this.spawnZ = playerZ + 30  // 30 units behind player
     
     // Spread enemies in a wider area (like player crowd)
