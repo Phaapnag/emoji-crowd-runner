@@ -546,8 +546,7 @@ function animate() {
         
         // Debug - show calculated positions
         if (battleTimer % 10 === 0) {
-          console.log('  → enemyMove:', enemyMoveAmount.toFixed(2), '→ newEnemyZ:', newEnemyZ.toFixed(1))
-          console.log('  → crowdMove:', crowdMoveAmount.toFixed(2), '→ newCrowdZ:', newCrowdZ.toFixed(1))
+          console.log('  → playerZ:', playerZ.toFixed(1), 'crowdTargetZ:', crowdTargetZ.toFixed(1), 'crowdMove:', crowdMoveAmount.toFixed(2), '→ newCrowdZ:', newCrowdZ.toFixed(1))
         }
         
         // Apply positions
