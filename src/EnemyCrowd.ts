@@ -33,8 +33,8 @@ export class EnemyCrowd {
     const geometry = new THREE.BoxGeometry(0.2, 0.2, 0.2)  // Slightly smaller than player crowd (0.25)
     
     // Spawn IN FRONT of player - player moves in negative direction (-50), so in front is NEGATIVE
-    // Player is at -50, enemies should spawn at -50 - 10 = -60 (in front of player)
-    this.spawnZ = playerZ - 10  // 10 units in front of player
+    // Player is at -50, enemies should spawn at -50 - 15 = -65 (in front of player)
+    this.spawnZ = playerZ - 15  // 15 units in front of player
     console.log('[EnemyCrowd] SPAWN: playerZ:', playerZ, 'spawnZ set to:', this.spawnZ)
     
     // Spread enemies in a wider area (like player crowd)
