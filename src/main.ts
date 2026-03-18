@@ -59,8 +59,8 @@ let invulnerableTimer = 0
 let gameOver = false
 let gameWon = false
 
-// End zone settings
-const END_ZONE_DISTANCE = 900
+// End zone settings - DEBUG: quick test at 50!
+const END_ZONE_DISTANCE = 50
 let inEndZone = false
 let endZoneTriggered = false
 
