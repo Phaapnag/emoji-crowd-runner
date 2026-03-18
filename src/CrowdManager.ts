@@ -5,8 +5,8 @@ export type EmojiType = 'shopping' | 'dinosaur' | 'plane' | 'bomb' | 'sparkle'
 export class CrowdManager {
   private scene: THREE.Scene
   private meshes: THREE.Mesh[] = []
-  // Start from 10 for debugging (so player has crowd to battle with)
-  private count = 10
+  // Start with 40 for more epic battles!
+  private count = 40
   private emojiTypes: EmojiType[] = ['shopping', 'dinosaur', 'plane', 'bomb', 'sparkle']
   private positions: { x: number, z: number, type: EmojiType, offset: number }[] = []
   private colors: { [key: string]: number } = {

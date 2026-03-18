@@ -26,9 +26,8 @@ export class EnemyCrowd {
     // Clear existing
     this.clear()
     
-    // Random enemy count: 5 to 25, scaled by difficulty
-    this.count = Math.floor(5 + Math.random() * 20 * difficulty)
-    this.count = Math.min(30, Math.max(5, this.count))
+    // Fixed enemy count: 32 for epic battles!
+    this.count = 32
     
     const geometry = new THREE.BoxGeometry(0.2, 0.2, 0.2)  // Slightly smaller than player crowd (0.25)
     

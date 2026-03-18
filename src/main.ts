@@ -536,15 +536,15 @@ function animate() {
         // Enemies move TOWARD player - FIXED target, not playerZ!
         // FIX: Use fixed target (initial spawn position), not dynamic playerZ
         const enemyFixedTarget = -60  // Fixed target
-        const enemyMoveAmount = (enemyFixedTarget - enemyZ) * 0.1  // 10% per frame
+        const enemyMoveAmount = (enemyFixedTarget - enemyZ) * 0.3  // 30% per frame
         const newEnemyZ = enemyZ + enemyMoveAmount
         
         // Crowd moves TOWARD enemies - but FIXED target (not moving with enemy!)
         // FIX: Use the INITIAL enemy spawn position, not current position
-        const crowdFixedTarget = -60  // Fixed target
-        const crowdTargetZ = crowdFixedTarget + 5  // Stop 5 units before fixed target
+        const initialEnemyZ = -65  // Fixed spawn position (match EnemyCrowd.ts spawnZ = playerZ - 15)
+        const crowdTargetZ = initialEnemyZ + 5  // Stop 5 units before initial enemy position
         const currentCrowdPos = crowdManager.getCurrentZ()
-        const crowdMoveAmount = (crowdTargetZ - currentCrowdPos) * 0.1  // 10% per frame
+        const crowdMoveAmount = (crowdTargetZ - currentCrowdPos) * 0.3  // 30% per frame
         const newCrowdZ = currentCrowdPos + crowdMoveAmount
         
         // Debug - show EVERY frame during battle!
