@@ -35,6 +35,7 @@ export class EnemyCrowd {
     // Spawn IN FRONT of player - player moves in negative direction (-50), so in front is NEGATIVE
     // Player is at -50, enemies should spawn at -50 - 10 = -60 (in front of player)
     this.spawnZ = playerZ - 10  // 10 units in front of player
+    console.log('[EnemyCrowd] SPAWN: playerZ:', playerZ, 'spawnZ set to:', this.spawnZ)
     
     // Spread enemies in a wider area (like player crowd)
     for (let i = 0; i < this.count; i++) {
@@ -84,11 +85,15 @@ export class EnemyCrowd {
   
   // Set custom Z for charging animation - set position directly
   setCustomZ(z: number) {
-    console.log('[EnemyCrowd] setCustomZ called, z:', z.toFixed(1), 'meshes:', this.meshes.length)
+    // Store original spawnZ BEFORE updating
+    const originalSpawnZ = this.spawnZ
+    
+    console.log('[EnemyCrowd] setCustomZ called, z:', z.toFixed(1), 'meshes:', this.meshes.length, 'originalSpawnZ:', originalSpawnZ.toFixed(1))
+    
     for (let i = 0; i < this.meshes.length; i++) {
       if (this.meshes[i] && this.positions[i]) {
-        // Get the offset from original spawnZ
-        const offsetZ = this.positions[i].z - this.spawnZ
+        // FIX: Use original spawnZ for offset calculation!
+        const offsetZ = this.positions[i].z - originalSpawnZ
         // Set new position based on new Z + offset
         this.meshes[i].position.z = z + offsetZ
         if (i === 0) console.log('  [Enemy] mesh[0] z:', this.meshes[i].position.z.toFixed(1), 'offsetZ:', offsetZ.toFixed(1))
