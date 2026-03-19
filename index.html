@@ -30,14 +30,7 @@
         flex-shrink: 0;
         box-shadow: 0 0 50px rgba(0,0,0,0.8);  /* 加強陰影分開左右 */
       }
-      canvas {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        display: block;
-      }
+      /* canvas由JS動態創建 */
       #score {
         position: absolute;
         top: 15px;
@@ -99,7 +92,7 @@
       <div id="battleOverlay"></div>
       <div id="battleStatusOverlay"></div>
       <div id="debugOverlay"></div>
-      <script type="module" src="/src/main.ts?v=12-FORCE-NEW"></script>
+      <script type="module" src="/src/main.ts?v=13-FORCE-NEW"></script>
     </div>
   </body>
 </html>

@@ -16,14 +16,13 @@ const camera = new THREE.PerspectiveCamera(75, 500 / 844, 0.1, 1000)
 camera.position.set(0, 5, 12)
 camera.lookAt(0, 0, 0)
 
-// Renderer - auto size based on container
+// Renderer - append to game container, not body
+const gameContainer = document.querySelector('.game-container') as HTMLElement
 const renderer = new THREE.WebGLRenderer({ antialias: true })
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 renderer.shadowMap.enabled = true
-document.body.appendChild(renderer.domElement)
+gameContainer.appendChild(renderer.domElement)
 
-// Get game container for renderer sizing
-const gameContainer = document.querySelector('.game-container') as HTMLElement
 function resizeRenderer() {
   const rect = gameContainer.getBoundingClientRect()
   renderer.setSize(rect.width, rect.height)
