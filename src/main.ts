@@ -11,19 +11,23 @@ const scene = new THREE.Scene()
 // Purple gradient background (matches game container)
 scene.background = new THREE.Color(0x2d1b4e)
 
-// Camera
-const camera = new THREE.PerspectiveCamera(75, 390 / 844, 0.1, 1000)
+// Camera - use 500/844 aspect ratio for browser
+const camera = new THREE.PerspectiveCamera(75, 500 / 844, 0.1, 1000)
 camera.position.set(0, 5, 12)
 camera.lookAt(0, 0, 0)
 
-// Renderer - use fixed 390x844 size
-const GAME_WIDTH = 390
-const GAME_HEIGHT = 844
+// Renderer - auto size based on container
 const renderer = new THREE.WebGLRenderer({ antialias: true })
-renderer.setSize(GAME_WIDTH, GAME_HEIGHT)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 renderer.shadowMap.enabled = true
 document.body.appendChild(renderer.domElement)
+
+// Get game container for renderer sizing
+const gameContainer = document.querySelector('.game-container') as HTMLElement
+function resizeRenderer() {
+  const rect = gameContainer.getBoundingClientRect()
+  renderer.setSize(rect.width, rect.height)
+}
 
 // Lighting
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.8)
@@ -227,14 +231,15 @@ function handleTouch(touchX: number) {
   }
 }
 
-// Window resize - keep game at fixed 390x844
+// Window resize - keep game aspect ratio 500/844
 function updateCameraFOV() {
   // Keep fixed aspect ratio for game camera
   camera.fov = 75
-  camera.aspect = GAME_WIDTH / GAME_HEIGHT
+  camera.aspect = 500 / 844
   camera.position.z = 12
   camera.updateProjectionMatrix()
-  // DO NOT resize renderer - keep 390x844
+  // Resize renderer to match container
+  resizeRenderer()
 }
 
 window.addEventListener('resize', updateCameraFOV)
