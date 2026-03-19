@@ -535,7 +535,7 @@ function animate() {
         
         // Enemies move TOWARD player - FIXED target, not playerZ!
         // FIX: Use fixed target (initial spawn position), not dynamic playerZ
-        const enemyFixedTarget = -57.5  // Meeting point!
+        const enemyFixedTarget = -58.5  // Meeting point!
         
         // Enemy move: 10% per frame (slower!)
         const enemyMoveAmount = (enemyFixedTarget - enemyZ) * 0.1
@@ -544,7 +544,7 @@ function animate() {
         // Crowd moves TOWARD enemies - but FIXED target (not moving with enemy!)
         // FIX: Use the INITIAL enemy spawn position, not current position
         const initialEnemyZ = -65  // Fixed spawn position
-        const crowdTargetZ = -57.5  // Same meeting point!
+        const crowdTargetZ = -58.5  // Same meeting point!
         const currentCrowdPos = crowdManager.getCurrentZ()
         const crowdMoveAmount = (crowdTargetZ - currentCrowdPos) * 0.1  // 10% per frame (slower!)
         const newCrowdZ = currentCrowdPos + crowdMoveAmount

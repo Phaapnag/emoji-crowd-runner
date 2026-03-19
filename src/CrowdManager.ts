@@ -65,10 +65,10 @@ export class CrowdManager {
     for (let i = 0; i < this.count; i++) {
       const type = this.emojiTypes[i % this.emojiTypes.length]
       
-      // More compact: tighter X range, much tighter Z spread
-      // X: -1.5 to +1.5
+      // Spread out more: wider X range
+      // X: -3 to +3 (wider!)
       // Z: 0 to 0.8 (very tight)
-      const x = (Math.random() - 0.5) * 3  // -1.5 to +1.5
+      const x = (Math.random() - 0.5) * 6  // -3 to +3 (same as enemy)
       const z = Math.random() * 0.8  // 0 to 0.8 (very tight)
       
       this.positions.push({
