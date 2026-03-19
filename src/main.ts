@@ -411,7 +411,7 @@ function animate() {
         
         // Show BOSS text using HTML overlay (centered!)
         if (battleTimer < 60) {
-          battleOverlay.textContent = '👹 BOSS'
+          battleOverlay.innerHTML = '👹 BOSS'
           battleOverlay.style.color = '#ff4444'
           battleOverlay.style.display = 'block'
         } else {
@@ -425,23 +425,35 @@ function animate() {
           battleOverlay.style.display = 'none'
         }
         
-        // Show battle status in center (for browser)
-        battleStatusOverlay.innerHTML = `👥 ${myCount} vs 💀 ${enemyCount}`
+        // Show battle status at bottom with more info
+        battleStatusOverlay.innerHTML = `
+          <div>👥 ${myCount} 人</div>
+          <div style="font-size: 32px; margin: 5px 0;">─────────</div>
+          <div style="font-size: 48px;">VS</div>
+          <div style="font-size: 32px; margin: 5px 0;">─────────</div>
+          <div>💀 ${enemyCount} 敵</div>
+        `
         battleStatusOverlay.style.display = 'block'
         battleStatusOverlay.style.color = '#ffff00'
         
-        scoreEl.textContent = `⚔️ BOSS戰! 👥${myCount} vs 💀${enemyCount} (減速中...)`
+        scoreEl.textContent = `⚔️ BOSS戰!`
         break
         
       case 'waiting':
         // Show battle instruction
-        battleOverlay.textContent = `⚔️ 向上掃 / 按↑ 開始戰鬥!`
+        battleOverlay.innerHTML = '⚔️<br>向上掃 / 按↑<br>開始戰鬥!'
         battleOverlay.style.color = '#ffffff'
         battleOverlay.style.fontSize = '36px'
         battleOverlay.style.display = 'block'
         
-        // Show battle status in center
-        battleStatusOverlay.innerHTML = `👥 ${myCount} vs 💀 ${enemyCount}`
+        // Show battle status at bottom
+        battleStatusOverlay.innerHTML = `
+          <div>👥 ${myCount} 人</div>
+          <div style="font-size: 32px; margin: 5px 0;">─────────</div>
+          <div style="font-size: 48px;">VS</div>
+          <div style="font-size: 32px; margin: 5px 0;">─────────</div>
+          <div>💀 ${enemyCount} 敵</div>
+        `
         battleStatusOverlay.style.display = 'block'
         battleStatusOverlay.style.color = '#ffffff'
         
