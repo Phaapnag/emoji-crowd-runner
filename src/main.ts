@@ -8,8 +8,8 @@ import { EnemyCrowd } from './EnemyCrowd'
 
 // Scene setup
 const scene = new THREE.Scene()
-// Sunset gradient background
-scene.background = new THREE.Color(0xff6b6b)
+// Dark background for nice contrast
+scene.background = new THREE.Color(0x1a1a2e)
 
 // Camera
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
@@ -17,11 +17,10 @@ camera.position.set(0, 5, 12)
 camera.lookAt(0, 0, 0)
 
 // Renderer
-const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
+const renderer = new THREE.WebGLRenderer({ antialias: true })
 renderer.setSize(window.innerWidth, window.innerHeight)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 renderer.shadowMap.enabled = true
-renderer.setClearColor(0x000000, 0)
 document.body.appendChild(renderer.domElement)
 
 // Lighting
@@ -410,20 +409,20 @@ function animate() {
       case 'slowing':
         battleTimer++
         
-        if (bossTextSprite) {
-          bossTextSprite.visible = (Math.floor(battleTimer / 10) % 2 === 0)
+        // Show BOSS text using HTML overlay (centered!)
+        if (battleTimer < 60) {
+          battleOverlay.textContent = '👹 BOSS'
+          battleOverlay.style.color = '#ff4444'
+          battleOverlay.style.display = 'block'
+        } else {
+          battleOverlay.style.display = 'none'
         }
         
         if (battleTimer >= 90) {
           speed = 0
           battleState = 'waiting'
           battleTimer = 0
-          
-          if (!bossTextSprite) {
-            bossTextSprite = createTextSprite('BOSS', '#ff0000', 3)
-            bossTextSprite.position.set(0, 4, playerZ - 10)  // Show in front of player
-            scene.add(bossTextSprite)
-          }
+          battleOverlay.style.display = 'none'
         }
         
         // Show battle status in center (for browser)
@@ -435,8 +434,10 @@ function animate() {
         break
         
       case 'waiting':
-        // Show battle instruction at bottom center
+        // Show battle instruction
         battleOverlay.textContent = `⚔️ 向上掃 / 按↑ 開始戰鬥!`
+        battleOverlay.style.color = '#ffffff'
+        battleOverlay.style.fontSize = '36px'
         battleOverlay.style.display = 'block'
         
         // Show battle status in center
@@ -444,20 +445,12 @@ function animate() {
         battleStatusOverlay.style.display = 'block'
         battleStatusOverlay.style.color = '#ffffff'
         
-        if (bossTextSprite) {
-          if (battleTimer < 120) {
-            bossTextSprite.visible = (Math.floor(battleTimer / 10) % 2 === 0)
-          } else {
-            bossTextSprite.visible = false
-          }
-        }
-        
         battleTimer++
         scoreEl.textContent = ``
         break
         
       case 'charging':
-        // Hide overlays
+        // Hide overlays during combat
         battleOverlay.style.display = 'none'
         battleStatusOverlay.style.display = 'none'
         

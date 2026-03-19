@@ -10,35 +10,16 @@ export class RoadSpawner {
   constructor(scene: THREE.Scene) {
     this.scene = scene
     
-    // Ground with sunset gradient texture
+    // Solid gray ground with lane markers
     const groundGeo = new THREE.PlaneGeometry(16, 1000)
-    const groundCanvas = document.createElement('canvas')
-    groundCanvas.width = 64
-    groundCanvas.height = 512
-    const groundCtx = groundCanvas.getContext('2d')!
-    const gradient = groundCtx.createLinearGradient(0, 0, 0, 512)
-    gradient.addColorStop(0, '#ff6b6b')    // Coral
-    gradient.addColorStop(0.25, '#feca57') // Yellow
-    gradient.addColorStop(0.5, '#48dbfb')  // Sky blue
-    gradient.addColorStop(0.75, '#5f27cd') // Purple
-    gradient.addColorStop(1, '#ff9ff3')    // Pink
-    groundCtx.fillStyle = gradient
-    groundCtx.fillRect(0, 0, 64, 512)
-    const groundTexture = new THREE.CanvasTexture(groundCanvas)
-    groundTexture.wrapS = THREE.RepeatWrapping
-    groundTexture.wrapT = THREE.RepeatWrapping
-    groundTexture.repeat.set(1, 50)
     const groundMat = new THREE.MeshStandardMaterial({ 
-      map: groundTexture,
-      roughness: 0.8,
-      metalness: 0.1,
-      transparent: true,
-      opacity: 0.6  // Semi-transparent to show gradient background
+      color: 0x3d3d5c,  // Dark purple-gray (matches dark background)
+      roughness: 0.9,
+      metalness: 0.1
     })
     this.ground = new THREE.Mesh(groundGeo, groundMat)
     this.ground.rotation.x = -Math.PI / 2
-    this.ground.position.y = -0.01  // Slightly below to not block background
-    this.ground.receiveShadow = false  // No shadows for gradient ground
+    this.ground.receiveShadow = true
     this.scene.add(this.ground)
     
     // Create lane markers

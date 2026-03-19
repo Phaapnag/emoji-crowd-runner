@@ -19,9 +19,12 @@
       }
       .game-container {
         position: relative;
-        width: 390px;
-        height: 844px;
-        background: linear-gradient(180deg, #ff6b6b 0%, #feca57 25%, #48dbfb 50%, #5f27cd 75%, #ff9ff3 100%);
+        width: 100%;
+        aspect-ratio: 390 / 844;
+        max-width: 390px;
+        max-height: calc(100vh - 20px);
+        background: #1a1a2e;  /* Dark blue-black for nice contrast */
+        overflow: hidden;
       }
       canvas {
         width: 100%;
@@ -42,6 +45,20 @@
       }
       #battleOverlay {
         position: absolute;
+        top: 35%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #ff4444;
+        font-size: 72px;
+        font-weight: bold;
+        font-family: sans-serif;
+        text-align: center;
+        z-index: 9998;
+        text-shadow: 3px 3px 6px #000;
+        pointer-events: none;
+      }
+      #battleStatusOverlay {
+        position: absolute;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
@@ -49,22 +66,10 @@
         font-size: 48px;
         font-weight: bold;
         font-family: sans-serif;
-        text-align: center;
-        z-index: 9998;
+        z-index: 9999;
         text-shadow: 2px 2px 4px #000;
         pointer-events: none;
-      }
-      #battleStatusOverlay {
-        position: absolute;
-        top: 15px;
-        left: 15px;
-        color: #fff;
-        font-size: 24px;
-        font-weight: bold;
-        font-family: sans-serif;
-        z-index: 9999;
-        text-shadow: 1px 1px 3px #000;
-        pointer-events: none;
+        text-align: center;
       }
       #debugOverlay {
         position: absolute;
