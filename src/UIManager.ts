@@ -42,7 +42,9 @@ export class UIManager {
     this.hudElement.innerHTML = `
       <div class="hud-row"><span class="hud-icon">👥</span> <span id="hud-crowd">0</span></div>
       <div class="hud-row"><span class="hud-icon">🪙</span> <span id="hud-coins">0</span></div>
-      <div class="hud-row"><span class="hud-icon">🏃</span> <span id="hud-distance">0.0</span>km</div>
+      <div class="hud-row"><span class="hud-icon">🏃</span> <span id="hud-distance">0.0</span>人/km</div>
+      <div class="hud-row"><span class="hud-icon">❤️</span> <span id="hud-lives">3</span></div>
+      <div class="hud-row"><span class="hud-icon">🏆</span> <span id="hud-score">0</span></div>
     `
     this.container.appendChild(this.hudElement)
   }
@@ -57,21 +59,39 @@ export class UIManager {
   }
   
   // Update HUD - call every frame
-  update() {
-    if (!this.hudElement || !this.crowdManagerRef || !this.playerRef || !this.gameStateRef) return
+  update(show: boolean = true) {
+    if (!this.hudElement) return
+    
+    // Show/hide based on parameter (false during battle to avoid clutter)
+    this.hudElement.style.display = show ? 'block' : 'none'
+    
+    if (!show || !this.crowdManagerRef || !this.playerRef || !this.gameStateRef) return
     
     const crowdCount = this.crowdManagerRef.getRemainingCount()
     const coins = this.gameStateRef.coins
+    const lives = this.gameStateRef.lives
+    const score = this.gameStateRef.score
     const distanceKm = (Math.abs(this.playerRef.mesh.position.z) / 100).toFixed(1)
     
     // Update HUD elements
     const hudCrowd = document.getElementById('hud-crowd')
     const hudCoins = document.getElementById('hud-coins')
     const hudDistance = document.getElementById('hud-distance')
+    const hudLives = document.getElementById('hud-lives')
+    const hudScore = document.getElementById('hud-score')
     
     if (hudCrowd) hudCrowd.textContent = String(crowdCount)
     if (hudCoins) hudCoins.textContent = String(coins)
     if (hudDistance) hudDistance.textContent = distanceKm
+    if (hudLives) hudLives.textContent = String(lives)
+    if (hudScore) hudScore.textContent = String(score)
+  }
+  
+  // Hide HUD during battle (battle status shows at bottom)
+  hideDuringBattle(inBattle: boolean) {
+    if (this.hudElement) {
+      this.hudElement.style.display = inBattle ? 'none' : 'block'
+    }
   }
   
   // Show temporary popup - auto hides after 2s

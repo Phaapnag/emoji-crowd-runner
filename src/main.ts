@@ -61,7 +61,7 @@ gateSpawner.setObstacleSpawner(levelSpawner)
 
 // Set initial references for UIManager (coins will be passed directly in update)
 // Use a mutable reference object
-const gameStateRef = { coins: 0, score: 0, distance: 0 }
+const gameStateRef = { coins: 0, score: 0, distance: 0, lives: 3 }
 uiManager.setReferences(crowdManager, player, gameStateRef)
 
 // Game state
@@ -96,7 +96,9 @@ let cameraTargetZ = 10  // Initial offset from player (smaller = zoom in)
 let cameraTransitioning = false
 
 // UI elements
+// Day 6: Hide original score (now in HUD)
 const scoreEl = document.getElementById('score')!
+scoreEl.style.display = 'none'
 const battleOverlay = document.getElementById('battleOverlay')!
 const battleStatusOverlay = document.getElementById('battleStatusOverlay')!
 // Day 6: Hide debug overlay (too much space)
@@ -333,11 +335,12 @@ function animate() {
   gateSpawner.update(player.mesh.position.z)
   crowdManager.update(player.mesh.position.x, player.mesh.position.z, Date.now() * 0.001)
   
-  // Day 6: Update UIManager HUD
+  // Day 6: Update UIManager HUD (hide during battle)
   gameStateRef.coins = coins
   gameStateRef.score = score
   gameStateRef.distance = distance
-  uiManager.update()
+  gameStateRef.lives = lives
+  uiManager.update(!inEndZone) // Hide HUD during battle
   
   let collectedCoins = 0
   
