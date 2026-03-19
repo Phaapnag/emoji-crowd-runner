@@ -81,60 +81,9 @@ let cameraTransitioning = false
 
 // UI elements
 const scoreEl = document.getElementById('score')!
-
-// Create battle instruction overlay (bottom center)
-const battleOverlay = document.createElement('div')
-battleOverlay.style.cssText = `
-  position: fixed;
-  bottom: 15%;
-  left: 50%;
-  transform: translateX(-50%);
-  color: #ffff00;
-  font-size: 24px;
-  font-weight: bold;
-  text-shadow: 2px 2px 4px #000;
-  pointer-events: none;
-  display: none;
-  z-index: 100;
-  text-align: center;
-`
-document.body.appendChild(battleOverlay)
-
-// Create battle status overlay (bottom center - for both mobile and browser)
-const battleStatusOverlay = document.createElement('div')
-battleStatusOverlay.style.cssText = `
-  position: fixed;
-  bottom: 25%;
-  left: 50%;
-  transform: translateX(-50%);
-  color: #ffffff;
-  font-size: 32px;
-  font-weight: bold;
-  text-shadow: 3px 3px 6px #000, -1px -1px 0 #000;
-  pointer-events: none;
-  display: none;
-  z-index: 100;
-  text-align: center;
-  font-family: Arial, sans-serif;
-  white-space: nowrap;
-  min-width: 200px;
-`
-document.body.appendChild(battleStatusOverlay)
-
-// Debug camera info overlay
-const debugOverlay = document.createElement('div')
-debugOverlay.style.cssText = `
-  position: fixed;
-  top: 10px;
-  left: 10px;
-  color: #00ff00;
-  font-size: 12px;
-  font-family: monospace;
-  pointer-events: none;
-  z-index: 100;
-  text-shadow: 1px 1px 2px #000;
-`
-document.body.appendChild(debugOverlay)
+const battleOverlay = document.getElementById('battleOverlay')!
+const battleStatusOverlay = document.getElementById('battleStatusOverlay')!
+const debugOverlay = document.getElementById('debugOverlay')!
 
 // Input handling
 let inputLeft = false
