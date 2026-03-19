@@ -15,6 +15,9 @@ export class EnemyCrowd {
   
   // Current spawn position (set when spawning)
   private spawnZ = -1000
+  // FIX: Keep initial spawnZ as anchor, use separate variable for current position
+  private initialSpawnZ = -1000
+  private currentZ = -1000
   
   constructor(scene: THREE.Scene) {
     this.scene = scene
@@ -34,6 +37,8 @@ export class EnemyCrowd {
     // Spawn IN FRONT of player - player moves in negative direction (-50), so in front is NEGATIVE
     // Player is at -50, enemies should spawn at -50 - 15 = -65 (in front of player)
     this.spawnZ = playerZ - 15  // 15 units in front of player
+    this.initialSpawnZ = this.spawnZ  // FIX: Keep as anchor!
+    this.currentZ = this.spawnZ  // Current position starts at spawn
     console.log('[EnemyCrowd] SPAWN: playerZ:', playerZ, 'spawnZ set to:', this.spawnZ)
     
     // Spread enemies in a wider area (like player crowd)
@@ -77,28 +82,27 @@ export class EnemyCrowd {
     return this.count
   }
   
-  // Get enemy zone Z position
+  // Get enemy zone Z position - return current position
   getEnemyZoneZ(): number {
-    return this.spawnZ
+    return this.currentZ
   }
   
   // Set custom Z for charging animation - set position directly
   setCustomZ(z: number) {
-    // Store original spawnZ BEFORE updating
-    const originalSpawnZ = this.spawnZ
-    
-    console.log('[EnemyCrowd] setCustomZ called, z:', z.toFixed(1), 'meshes:', this.meshes.length, 'originalSpawnZ:', originalSpawnZ.toFixed(1))
+    // FIX: Use initialSpawnZ as anchor, update currentZ instead of spawnZ
+    console.log('[EnemyCrowd] setCustomZ called, z:', z.toFixed(1), 'meshes:', this.meshes.length, 'anchor:', this.initialSpawnZ.toFixed(1))
     
     for (let i = 0; i < this.meshes.length; i++) {
       if (this.meshes[i] && this.positions[i]) {
-        // FIX: Use original spawnZ for offset calculation!
-        const offsetZ = this.positions[i].z - originalSpawnZ
+        // Use initialSpawnZ as anchor for offset calculation!
+        const offsetZ = this.positions[i].z - this.initialSpawnZ
         // Set new position based on new Z + offset
         this.meshes[i].position.z = z + offsetZ
         if (i === 0) console.log('  [Enemy] mesh[0] z:', this.meshes[i].position.z.toFixed(1), 'offsetZ:', offsetZ.toFixed(1))
       }
     }
-    this.spawnZ = z
+    // FIX: Update currentZ, NOT spawnZ! Keep spawnZ as anchor
+    this.currentZ = z
   }
   
   // Check if player has reached enemy zone - require player to actually get close!
