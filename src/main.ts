@@ -99,7 +99,9 @@ let cameraTransitioning = false
 const scoreEl = document.getElementById('score')!
 const battleOverlay = document.getElementById('battleOverlay')!
 const battleStatusOverlay = document.getElementById('battleStatusOverlay')!
+// Day 6: Hide debug overlay (too much space)
 const debugOverlay = document.getElementById('debugOverlay')!
+debugOverlay.style.display = 'none'
 
 // Track battle UI elements for efficient updates
 let battleUIInitialized = false

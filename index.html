@@ -70,25 +70,24 @@
         z-index: 201;
       }
       
-      /* Score Display - Neon Style */
+      /* Score Display - Unified with HUD style */
       #score {
         position: absolute;
         top: 15px;
         right: 15px;
         color: #00f0ff;
-        font-size: 20px;
+        font-size: 16px;
         font-weight: 700;
         font-family: 'Quicksand', sans-serif;
         z-index: 100;
         text-shadow: 
-          0 0 10px #00f0ff,
-          0 0 20px #00f0ff,
-          0 0 30px #00f0ff;
+          0 0 5px #00f0ff;
         pointer-events: none;
-        padding: 8px 16px;
-        background: rgba(0, 240, 255, 0.1);
-        border: 1px solid rgba(0, 240, 255, 0.3);
+        padding: 8px 12px;
+        background: rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(0, 240, 255, 0.2);
         border-radius: 8px;
+        line-height: 1.4;
       }
       
       /* Battle Overlay - BOSS Text with Neon Glow */

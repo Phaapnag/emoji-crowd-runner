@@ -34,15 +34,15 @@ export class UIManager {
     this.gameStateRef = gameState
   }
   
-  // Create right-top HUD element
+  // Create left-top HUD element (vertical layout)
   private createHUD() {
     this.hudElement = document.createElement('div')
-    this.hudElement.id = 'hud-right'
-    this.hudElement.className = 'hud-right'
+    this.hudElement.id = 'hud-left'
+    this.hudElement.className = 'hud-left'
     this.hudElement.innerHTML = `
-      <span class="hud-icon">👥</span> <span id="hud-crowd">0</span>  
-      <span class="hud-icon">🪙</span> <span id="hud-coins">0</span>  
-      <span class="hud-icon">🏃</span> <span id="hud-distance">0.0</span>km
+      <div class="hud-row"><span class="hud-icon">👥</span> <span id="hud-crowd">0</span></div>
+      <div class="hud-row"><span class="hud-icon">🪙</span> <span id="hud-coins">0</span></div>
+      <div class="hud-row"><span class="hud-icon">🏃</span> <span id="hud-distance">0.0</span>km</div>
     `
     this.container.appendChild(this.hudElement)
   }

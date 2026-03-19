@@ -1,13 +1,13 @@
 /* ============================================
-   UIManager Styles - Right-top HUD + Status Popups
-   Day 6: Permanent HUD + Temporary Status
+   UIManager Styles - Left-top HUD + Status Popups
+   Day 6: Unified HUD with existing game info
    ============================================ */
 
-/* Right-top HUD - 90% transparent, Neon Cyan */
-.hud-right {
+/* Left-top HUD - Vertical layout, matches existing score style */
+.hud-left {
   position: absolute;
-  top: 20px;
-  right: 20px;
+  top: 15px;
+  left: 15px;
   opacity: 0.9;
   font-family: 'Quicksand', sans-serif;
   color: #00f0ff; /* Neon Cyan */
@@ -19,17 +19,37 @@
   border: 1px solid rgba(0, 240, 255, 0.2);
   z-index: 90;
   pointer-events: none;
-  display: flex;
-  gap: 12px;
-  align-items: center;
 }
 
-.hud-right .hud-icon {
+.hud-left .hud-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 2px 0;
+}
+
+.hud-left .hud-icon {
   font-size: 14px;
 }
 
-.hud-right span {
-  margin-right: 4px;
+/* Unified Score Display - Now matches HUD style */
+#score {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  color: #00f0ff;
+  font-size: 16px;
+  font-weight: 700;
+  font-family: 'Quicksand', sans-serif;
+  z-index: 100;
+  text-shadow: 
+    0 0 5px #00f0ff;
+  pointer-events: none;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  border-radius: 8px;
+  line-height: 1.4;
 }
 
 /* Center Status Popup - 80% transparent, Neon Pink */
