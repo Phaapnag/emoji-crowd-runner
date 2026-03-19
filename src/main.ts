@@ -418,11 +418,9 @@ function animate() {
         
         // Show BOSS text using HTML overlay (at TOP!)
         if (battleTimer < 60) {
-          battleOverlay.innerHTML = '👹 BOSS'
-          battleOverlay.style.color = '#ff4444'
+          battleOverlay.innerHTML = '<span class="boss-text">👹 BOSS</span>'
           battleOverlay.style.top = '60px'
           battleOverlay.style.bottom = 'auto'
-          battleOverlay.style.fontSize = '64px'
           battleOverlay.style.display = 'block'
         } else {
           battleOverlay.style.display = 'none'
@@ -435,39 +433,35 @@ function animate() {
           battleOverlay.style.display = 'none'
         }
         
-        // Show battle status at BOTTOM with IDs for efficient updates
+        // Show battle status at BOTTOM with neon styling
         battleStatusOverlay.innerHTML = `
-          <div id="battle-my-count">👥 ${myCount} 人</div>
-          <div style="font-size: 32px; margin: 5px 0;">─────────</div>
-          <div style="font-size: 48px;">VS</div>
-          <div style="font-size: 32px; margin: 5px 0;">─────────</div>
-          <div id="battle-enemy-count">💀 ${enemyCount} 敵</div>
+          <div class="count friend">👥 ${myCount} 人</div>
+          <div class="divider">━━━━━━━━━━</div>
+          <div class="vs-text">VS</div>
+          <div class="divider">━━━━━━━━━━</div>
+          <div class="count enemy">💀 ${enemyCount} 敵</div>
         `
         battleStatusOverlay.style.display = 'block'
-        battleStatusOverlay.style.color = '#ffff00'
         
         scoreEl.textContent = `⚔️ BOSS戰!`
         break
         
       case 'waiting':
-        // Show battle instruction at TOP
-        battleOverlay.innerHTML = '⚔️<br>向上掃 / 按↑<br>開始戰鬥!'
-        battleOverlay.style.color = '#ffffff'
-        battleOverlay.style.fontSize = '32px'
+        // Show battle instruction at TOP with neon styling
+        battleOverlay.innerHTML = '<span class="instruction-text">⚔️<br>向上掃<br>按↑開始!</span>'
         battleOverlay.style.top = '60px'
         battleOverlay.style.bottom = 'auto'
         battleOverlay.style.display = 'block'
         
-        // Show battle status at BOTTOM with IDs
+        // Show battle status at BOTTOM with neon styling
         battleStatusOverlay.innerHTML = `
-          <div id="battle-my-count">👥 ${myCount} 人</div>
-          <div style="font-size: 32px; margin: 5px 0;">─────────</div>
-          <div style="font-size: 48px;">VS</div>
-          <div style="font-size: 32px; margin: 5px 0;">─────────</div>
-          <div id="battle-enemy-count">💀 ${enemyCount} 敵</div>
+          <div class="count friend">👥 ${myCount} 人</div>
+          <div class="divider">━━━━━━━━━━</div>
+          <div class="vs-text">VS</div>
+          <div class="divider">━━━━━━━━━━</div>
+          <div class="count enemy">💀 ${enemyCount} 敵</div>
         `
         battleStatusOverlay.style.display = 'block'
-        battleStatusOverlay.style.color = '#ffffff'
         
         battleTimer++
         scoreEl.textContent = ``
@@ -480,14 +474,13 @@ function animate() {
         // Set up HTML structure ONCE when entering charging state
         if (battleTimer === 0) {
           battleStatusOverlay.innerHTML = `
-            <div id="battle-my-count">👥 ${myCount} 人</div>
-            <div style="font-size: 32px; margin: 5px 0;">─────────</div>
-            <div style="font-size: 48px;">VS</div>
-            <div style="font-size: 32px; margin: 5px 0;">─────────</div>
-            <div id="battle-enemy-count">💀 ${enemyCount} 敵</div>
+            <div id="battle-my-count" class="count friend">👥 ${myCount} 人</div>
+            <div class="divider">━━━━━━━━━━</div>
+            <div class="vs-text">VS</div>
+            <div class="divider">━━━━━━━━━━</div>
+            <div id="battle-enemy-count" class="count enemy">💀 ${enemyCount} 敵</div>
           `
           battleStatusOverlay.style.display = 'block'
-          battleStatusOverlay.style.color = '#ffffff'
         }
         
         battleTimer++
@@ -518,11 +511,17 @@ function animate() {
           const newMyCount = crowdManager.getRemainingCount()
           const newEnemyCount = enemyCrowd.getCount()
           
-          // Update only the numbers
+          // Update only the numbers with neon styling
           const myCountEl = document.getElementById('battle-my-count')
           const enemyCountEl = document.getElementById('battle-enemy-count')
-          if (myCountEl) myCountEl.textContent = `👥 ${newMyCount} 人`
-          if (enemyCountEl) enemyCountEl.textContent = `💀 ${newEnemyCount} 敵`
+          if (myCountEl) {
+            myCountEl.textContent = `👥 ${newMyCount} 人`
+            myCountEl.className = 'count friend'
+          }
+          if (enemyCountEl) {
+            enemyCountEl.textContent = `💀 ${newEnemyCount} 敵`
+            enemyCountEl.className = 'count enemy'
+          }
           
           scoreEl.textContent = `⚔️ 決戰! 👥${newMyCount} vs 💀${newEnemyCount}`
           
@@ -533,34 +532,32 @@ function animate() {
             
             // Show WIN/LOSS 3D sprite
             if (!resultTextSprite) {
-              resultTextSprite = createTextSprite('LOSS', '#ff0000', 3)
+              resultTextSprite = createTextSprite('LOSS', '#ff3131', 3)
               resultTextSprite.position.set(0, 3, playerZ)
               scene.add(resultTextSprite)
             }
             
             battleStatusOverlay.innerHTML = `
-              <div style="font-size: 64px;">💀 敗北!</div>
-              <div style="font-size: 24px; margin-top: 20px;">敵人: ${newEnemyCount}</div>
-              <div style="font-size: 18px; margin-top: 30px; opacity: 0.7;">👆 Click 或 Tab 重新開始</div>
+              <div class="result lose">💀 敗北!</div>
+              <div class="count enemy" style="font-size: 28px; margin-top: 16px;">敵人: ${newEnemyCount}</div>
+              <div class="restart-hint">👆 Click 或 Tab 重新開始</div>
             `
-            battleStatusOverlay.style.color = '#ff4444'
           } else if (newEnemyCount <= 0) {
             battleState = 'ended'
             finalResult = 'win'
             
             // Show WIN/LOSS 3D sprite
             if (!resultTextSprite) {
-              resultTextSprite = createTextSprite('WIN', '#00ff00', 3)
+              resultTextSprite = createTextSprite('WIN', '#39ff14', 3)
               resultTextSprite.position.set(0, 3, playerZ)
               scene.add(resultTextSprite)
             }
             
             battleStatusOverlay.innerHTML = `
-              <div style="font-size: 64px;">🏆 勝利!</div>
-              <div style="font-size: 24px; margin-top: 20px;">存活: ${newMyCount} 人</div>
-              <div style="font-size: 18px; margin-top: 30px; opacity: 0.7;">👆 Click 或 Tab 重新開始</div>
+              <div class="result win">🏆 勝利!</div>
+              <div class="count friend" style="font-size: 28px; margin-top: 16px;">存活: ${newMyCount} 人</div>
+              <div class="restart-hint">👆 Click 或 Tab 重新開始</div>
             `
-            battleStatusOverlay.style.color = '#00ff00'
           }
         }
         
