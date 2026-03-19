@@ -91,20 +91,28 @@ const battleOverlay = document.getElementById('battleOverlay')!
 const battleStatusOverlay = document.getElementById('battleStatusOverlay')!
 const debugOverlay = document.getElementById('debugOverlay')!
 
+// Track battle UI elements for efficient updates
+let battleUIInitialized = false
+let battleMyCountEl: HTMLElement | null = null
+let battleEnemyCountEl: HTMLElement | null = null
+
 // Input handling
 let inputLeft = false
 let inputRight = false
 
+// Click to restart after battle
+document.addEventListener('click', () => {
+  if (battleState === 'ended') {
+    location.reload()
+  }
+})
+
 document.addEventListener('keydown', (e) => {
   // Tab to continue after battle (when battleState is 'ended')
-  if (battleState === 'ended' && finalResult) {
+  if (battleState === 'ended') {
     if (e.key === 'Tab') {
       e.preventDefault()
-      if (finalResult === 'win') {
-        gameWon = true
-      } else {
-        gameOver = true
-      }
+      location.reload()
       return
     }
   }
@@ -427,13 +435,13 @@ function animate() {
           battleOverlay.style.display = 'none'
         }
         
-        // Show battle status at BOTTOM with more info
+        // Show battle status at BOTTOM with IDs for efficient updates
         battleStatusOverlay.innerHTML = `
-          <div>👥 ${myCount} 人</div>
+          <div id="battle-my-count">👥 ${myCount} 人</div>
           <div style="font-size: 32px; margin: 5px 0;">─────────</div>
           <div style="font-size: 48px;">VS</div>
           <div style="font-size: 32px; margin: 5px 0;">─────────</div>
-          <div>💀 ${enemyCount} 敵</div>
+          <div id="battle-enemy-count">💀 ${enemyCount} 敵</div>
         `
         battleStatusOverlay.style.display = 'block'
         battleStatusOverlay.style.color = '#ffff00'
@@ -450,13 +458,13 @@ function animate() {
         battleOverlay.style.bottom = 'auto'
         battleOverlay.style.display = 'block'
         
-        // Show battle status at BOTTOM
+        // Show battle status at BOTTOM with IDs
         battleStatusOverlay.innerHTML = `
-          <div>👥 ${myCount} 人</div>
+          <div id="battle-my-count">👥 ${myCount} 人</div>
           <div style="font-size: 32px; margin: 5px 0;">─────────</div>
           <div style="font-size: 48px;">VS</div>
           <div style="font-size: 32px; margin: 5px 0;">─────────</div>
-          <div>💀 ${enemyCount} 敵</div>
+          <div id="battle-enemy-count">💀 ${enemyCount} 敵</div>
         `
         battleStatusOverlay.style.display = 'block'
         battleStatusOverlay.style.color = '#ffffff'
@@ -510,9 +518,11 @@ function animate() {
           const newMyCount = crowdManager.getRemainingCount()
           const newEnemyCount = enemyCrowd.getCount()
           
-          // Show updated counts
-          battleStatusOverlay.innerHTML = `👥 ${newMyCount} vs 💀 ${newEnemyCount}`
-          battleStatusOverlay.style.display = 'block'
+          // Efficient update: only update numbers using IDs
+          const myCountEl = document.getElementById('battle-my-count')
+          const enemyCountEl = document.getElementById('battle-enemy-count')
+          if (myCountEl) myCountEl.textContent = `👥 ${newMyCount} 人`
+          if (enemyCountEl) enemyCountEl.textContent = `💀 ${newEnemyCount} 敵`
           
           scoreEl.textContent = `⚔️ 決戰! 👥${newMyCount} vs 💀${newEnemyCount}`
           
@@ -520,21 +530,21 @@ function animate() {
           if (newMyCount <= 0) {
             battleState = 'ended'
             finalResult = 'lose'
-            battleStatusOverlay.style.display = 'none'
-            
-            resultTextSprite = createTextSprite('LOSS', '#ff0000', 3)
-            resultTextSprite.position.set(0, 3, playerZ)
-            scene.add(resultTextSprite)
-            
-            scoreEl.innerHTML = `💀 敗北!<br>敵人: ${newEnemyCount}<br><small>Tab/Click to restart</small>`
+            battleStatusOverlay.innerHTML = `
+              <div style="font-size: 64px;">💀 敗北!</div>
+              <div style="font-size: 24px; margin-top: 20px;">敵人: ${newEnemyCount}</div>
+              <div style="font-size: 18px; margin-top: 30px; opacity: 0.7;">👆 Click 或 Tab 重新開始</div>
+            `
+            battleStatusOverlay.style.color = '#ff4444'
           } else if (newEnemyCount <= 0) {
             battleState = 'ended'
             finalResult = 'win'
-            battleStatusOverlay.style.display = 'none'
-            
-            resultTextSprite = createTextSprite('WIN', '#00ff00', 3)
-            resultTextSprite.position.set(0, 3, playerZ)
-            scene.add(resultTextSprite)
+            battleStatusOverlay.innerHTML = `
+              <div style="font-size: 64px;">🏆 勝利!</div>
+              <div style="font-size: 24px; margin-top: 20px;">存活: ${newMyCount} 人</div>
+              <div style="font-size: 18px; margin-top: 30px; opacity: 0.7;">👆 Click 或 Tab 重新開始</div>
+            `
+            battleStatusOverlay.style.color = '#00ff00'
           }
         }
         
