@@ -569,11 +569,6 @@ function animate() {
           resultTextSprite.rotation.y += 0.02
         }
         break
-        
-      // Note: 'battling' case is obsolete - all logic is in 'charging'
-      case 'ended':
-        // Battle ended - waiting for player input
-        break
     }
   }
   

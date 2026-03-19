@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Emoji Crowd Runner</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { 
+        width: 100%; 
+        height: 100%; 
+        overflow: hidden; 
+        background: #0a0a0a;  /* 屏幕外背景 - 純黑色 */
+      }
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+      }
+      .game-container {
+        position: relative;
+        width: 500px;
+        height: auto;
+        aspect-ratio: 500 / 844;
+        max-width: 100vw;
+        max-height: calc(100vh - 20px);
+        background: linear-gradient(135deg, #2d1b4e 0%, #1a1a2e 100%);  /* 遊戲區域背景 - 深紫色 */
+        overflow: hidden;
+        flex-shrink: 0;
+        box-shadow: 0 0 50px rgba(0,0,0,0.8);  /* 加強陰影分開左右 */
+      }
+      /* canvas由JS動態創建 */
+      #score {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        color: #ffffff;
+        font-size: 18px;
+        font-weight: bold;
+        font-family: sans-serif;
+        z-index: 100;
+        text-shadow: 2px 2px 4px #000;
+        pointer-events: none;
+      }
+      #battleOverlay {
+        position: absolute;
+        top: 60px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100%;
+        color: #ff4444;
+        font-size: 48px;
+        font-weight: bold;
+        font-family: sans-serif;
+        text-align: center;
+        z-index: 100;
+        text-shadow: 3px 3px 6px #000;
+        pointer-events: none;
+      }
+      #battleStatusOverlay {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100%;
+        color: #ffffff;
+        font-size: 24px;
+        font-weight: bold;
+        font-family: sans-serif;
+        z-index: 100;
+        text-shadow: 2px 2px 4px #000;
+        pointer-events: none;
+        text-align: center;
+      }
+      #debugOverlay {
+        position: absolute;
+        bottom: 15px;
+        left: 15px;
+        color: #ffffff;
+        font-size: 12px;
+        font-family: monospace;
+        z-index: 100;
+        text-shadow: 1px 1px 2px #000;
+        pointer-events: none;
+      }
+    </style>
+    <script type="module" crossorigin src="/assets/index-PtUkMQZB.js"></script>
+  </head>
+  <body>
+    <div class="game-container">
+      <div id="score">🛒 0</div>
+      <div id="battleOverlay"></div>
+      <div id="battleStatusOverlay"></div>
+      <div id="debugOverlay"></div>
+    </div>
+  </body>
+</html>
