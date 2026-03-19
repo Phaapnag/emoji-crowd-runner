@@ -50,11 +50,9 @@ export class GateSpawner {
     
     // Initial spawn: only spawn 1 group at start
     if (!this.initialSpawned) {
-      console.log('[GateSpawner] Doing initial spawn of 1 group')
       this.spawnGateGroup()
       this.initialSpawned = true
       this.playerZAtLastSpawn = playerZ
-      console.log('[GateSpawner] Initial spawn done, currentGateZ:', this.lastSpawnZ)
       return
     }
     
@@ -63,44 +61,15 @@ export class GateSpawner {
     // If player has moved past the current gate by 80 units, spawn next
     const distancePastGate = this.playerZAtLastSpawn - playerZ
     
-    console.log('[GateSpawner] playerZ:', playerZ, 'playerZAtLastSpawn:', this.playerZAtLastSpawn, 'distancePastGate:', distancePastGate)
-    
     if (distancePastGate >= 80) {
-      console.log('[GateSpawner] ✓ Spawning new gate group!')
       this.spawnGateGroup()
       this.playerZAtLastSpawn = playerZ
-    } else {
-      console.log('[GateSpawner] ✗ Has not passed last gate yet')
     }
   }
   
   private spawnGateGroup() {
-    console.log('[GateSpawner] spawnGateGroup called, lastSpawnZ before:', this.lastSpawnZ)
-    
     // Move spawn position further
     this.lastSpawnZ -= 80 // Fixed distance between gates
-    
-    console.log('[GateSpawner] Spawning at z:', this.lastSpawnZ)
-    
-    // Check obstacle collision
-    if (this.obstacleSpawner && this.obstacleSpawner.isTooCloseToObstacle(this.lastSpawnZ)) {
-      console.log('[GateSpawner] Too close to obstacle, skipping')
-      // Skip this position, try next
-      this.lastSpawnZ -= 10
-    }
-    
-    // Spawn 2 gates
-    const leftPositions = [-4, -2]
-    const rightPositions = [2, 4]
-    const leftX = leftPositions[Math.floor(Math.random() * leftPositions.length)]
-    const rightX = rightPositions[Math.floor(Math.random() * rightPositions.length)]
-    
-    const type1 = Gate.getRandomType()
-    const type2 = Gate.getRandomType()
-    const effect1 = Gate.generateEffect(type1, 0)
-    const effect2 = Gate.generateEffect(type2, 0)
-    
-    console.log('[GateSpawner] Activating gates at x:', leftX, rightX, 'z:', this.lastSpawnZ, 'effects:', effect1.text, effect2.text)
     
     this.activateGate(leftX, type1, effect1.text, this.lastSpawnZ, effect1.value)
     this.activateGate(rightX, type2, effect2.text, this.lastSpawnZ, effect2.value)
@@ -149,7 +118,6 @@ export class GateSpawner {
   }
   
   update(playerZ: number) {
-    console.log('[GateSpawner] update called, playerZ:', playerZ)
     this.spawnGates(playerZ)
     
     // Recycle gates behind player
