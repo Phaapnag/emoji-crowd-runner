@@ -474,26 +474,27 @@ function animate() {
         break
         
       case 'charging':
-        // Hide overlays during combat
+        // Hide instruction overlay
         battleOverlay.style.display = 'none'
-        battleStatusOverlay.style.display = 'none'
+        
+        // Set up HTML structure ONCE when entering charging state
+        if (battleTimer === 0) {
+          battleStatusOverlay.innerHTML = `
+            <div id="battle-my-count">👥 ${myCount} 人</div>
+            <div style="font-size: 32px; margin: 5px 0;">─────────</div>
+            <div style="font-size: 48px;">VS</div>
+            <div style="font-size: 32px; margin: 5px 0;">─────────</div>
+            <div id="battle-enemy-count">💀 ${enemyCount} 敵</div>
+          `
+          battleStatusOverlay.style.display = 'block'
+          battleStatusOverlay.style.color = '#ffffff'
+        }
         
         battleTimer++
         
-        // FAST charge animation: 1 second to meet (60 frames)
-        // Make movement more visible by using larger step per frame
-        const chargeProgress = Math.min(1, battleTimer / 60)
+        // Move both crowds toward each other
         const enemyZ = enemyCrowd.getEnemyZoneZ()
-        
-        // Debug - show positions every frame during charge
-        if (battleTimer % 10 === 0) {
-          console.log('⚔️ CHARGE frame', battleTimer, '| playerZ:', playerZ.toFixed(1), '| enemyZ:', enemyZ.toFixed(1), '| progress:', chargeProgress.toFixed(2))
-        }
-        
-        // FIX: Use dynamic meeting point based on playerZ
-        // Enemy spawns at playerZ - 15, crowd at playerZ
-        // Meeting point: midpoint = playerZ - 7.5
-        const meetingPoint = playerZ - 7.5  // Dynamic!
+        const meetingPoint = playerZ - 7.5
         
         // Enemy move: 10% per frame toward meeting point
         const enemyMoveAmount = (meetingPoint - enemyZ) * 0.1
@@ -507,10 +508,9 @@ function animate() {
         // Apply positions
         enemyCrowd.setCustomZ(newEnemyZ)
         crowdManager.setCustomZ(newCrowdZ)
-        
         enemyCrowd.update(Date.now() * 0.001)
         
-        // BATTLE CLASH during charging! (every 8 frames for very fast combat!)
+        // BATTLE CLASH during charging! (every 8 frames)
         if (battleTimer % 8 === 0 && myCount > 0 && enemyCount > 0) {
           crowdManager.rebuild(Math.max(0, myCount - 1))
           enemyCrowd.eliminateOne()
@@ -518,7 +518,7 @@ function animate() {
           const newMyCount = crowdManager.getRemainingCount()
           const newEnemyCount = enemyCrowd.getCount()
           
-          // Efficient update: only update numbers using IDs
+          // Update only the numbers
           const myCountEl = document.getElementById('battle-my-count')
           const enemyCountEl = document.getElementById('battle-enemy-count')
           if (myCountEl) myCountEl.textContent = `👥 ${newMyCount} 人`
@@ -526,10 +526,18 @@ function animate() {
           
           scoreEl.textContent = `⚔️ 決戰! 👥${newMyCount} vs 💀${newEnemyCount}`
           
-          // Check for winner immediately!
+          // Check for winner!
           if (newMyCount <= 0) {
             battleState = 'ended'
             finalResult = 'lose'
+            
+            // Show WIN/LOSS 3D sprite
+            if (!resultTextSprite) {
+              resultTextSprite = createTextSprite('LOSS', '#ff0000', 3)
+              resultTextSprite.position.set(0, 3, playerZ)
+              scene.add(resultTextSprite)
+            }
+            
             battleStatusOverlay.innerHTML = `
               <div style="font-size: 64px;">💀 敗北!</div>
               <div style="font-size: 24px; margin-top: 20px;">敵人: ${newEnemyCount}</div>
@@ -539,6 +547,14 @@ function animate() {
           } else if (newEnemyCount <= 0) {
             battleState = 'ended'
             finalResult = 'win'
+            
+            // Show WIN/LOSS 3D sprite
+            if (!resultTextSprite) {
+              resultTextSprite = createTextSprite('WIN', '#00ff00', 3)
+              resultTextSprite.position.set(0, 3, playerZ)
+              scene.add(resultTextSprite)
+            }
+            
             battleStatusOverlay.innerHTML = `
               <div style="font-size: 64px;">🏆 勝利!</div>
               <div style="font-size: 24px; margin-top: 20px;">存活: ${newMyCount} 人</div>
@@ -548,75 +564,15 @@ function animate() {
           }
         }
         
-        // Keep charging until one side is eliminated (no fixed frame limit!)
+        // Rotate the 3D result text if it exists
+        if (resultTextSprite) {
+          resultTextSprite.rotation.y += 0.02
+        }
         break
         
-      case 'battling':
-        // This case is now obsolete - everything happens in 'charging'
-        battleOverlay.style.display = 'none'
-        speed = 0
-        battleTimer++
-        // ... rest of code
-        
-        // CONTINUOUS MOVEMENT during battle!
-        // Both enemies and crowd move toward each other while fighting
-        const battleEnemyZ = enemyCrowd.getEnemyZoneZ()
-        
-        // Enemies move toward player (same as charging but continuous)
-        const battleEnemyTarget = playerZ  // Go to player position
-        const battleEnemyMove = (battleEnemyTarget - battleEnemyZ) * 0.05  // 5% per frame
-        const newBattleEnemyZ = battleEnemyZ + battleEnemyMove
-        
-        // Crowd moves forward toward enemies
-        const battleCrowdZ = playerZ  // Start at player
-        const battleCrowdTarget = battleEnemyTarget - 3  // Stop 3 units before enemies
-        const battleCrowdMove = (battleCrowdTarget - battleCrowdZ) * 0.05
-        const newBattleCrowdZ = battleCrowdZ + battleCrowdMove
-        
-        // Apply positions
-        enemyCrowd.setCustomZ(newBattleEnemyZ)
-        crowdManager.setCustomZ(newBattleCrowdZ)
-        
-        enemyCrowd.update(Date.now() * 0.001)
-        
-        // Battle clash - every 30 frames (0.5 seconds)
-        if (battleTimer % 30 === 0 && myCount > 0 && enemyCount > 0) {
-          crowdManager.rebuild(Math.max(0, myCount - 1))
-          enemyCrowd.eliminateOne()
-          
-          const newMyCount = crowdManager.getRemainingCount()
-          const newEnemyCount = enemyCrowd.getCount()
-          
-          // Show updated counts in center
-          battleStatusOverlay.innerHTML = `👥 ${newMyCount} vs 💀 ${newEnemyCount}`
-          battleStatusOverlay.style.display = 'block'
-          
-          scoreEl.textContent = `⚔️ 決戰! 👥${newMyCount} vs 💀${newEnemyCount}`
-          
-          if (newMyCount <= 0) {
-            battleState = 'ended'
-            finalResult = 'lose'
-            // Don't set gameOver yet - wait for player input
-            battleStatusOverlay.style.display = 'none'
-            
-            resultTextSprite = createTextSprite('LOSS', '#ff0000', 3)
-            resultTextSprite.position.set(0, 3, playerZ)
-            scene.add(resultTextSprite)
-            
-            scoreEl.innerHTML = `💀 敗北!<br>敵人: ${newEnemyCount}<br><small>Tab/Click to restart</small>`
-          } else if (newEnemyCount <= 0) {
-            battleState = 'ended'
-            finalResult = 'win'
-            // Don't set gameWon yet - wait for player input
-            battleStatusOverlay.style.display = 'none'
-            
-            resultTextSprite = createTextSprite('WIN', '#00ff00', 3)
-            resultTextSprite.position.set(0, 3, playerZ)
-            scene.add(resultTextSprite)
-            
-            scoreEl.innerHTML = `🎉 勝利!<br>剩餘: ${newMyCount}<br>Score: ${score}<br><small>Tab/Click to continue</small>`
-          }
-        }
+      // Note: 'battling' case is obsolete - all logic is in 'charging'
+      case 'ended':
+        // Battle ended - waiting for player input
         break
     }
   }
