@@ -5,6 +5,8 @@ import { LevelSpawner } from './LevelSpawner'
 import { CrowdManager } from './CrowdManager'
 import { GateSpawner } from './GateSpawner'
 import { EnemyCrowd } from './EnemyCrowd'
+import { UIManager } from './UIManager'
+import './ui.css'
 
 // Scene setup
 const scene = new THREE.Scene()
@@ -51,8 +53,16 @@ const crowdManager = new CrowdManager(scene)
 const gateSpawner = new GateSpawner(scene)
 const enemyCrowd = new EnemyCrowd(scene)
 
+// UIManager - Day 6: Right-top HUD + Status Popups
+const uiManager = new UIManager(scene, gameContainer)
+
 // Connect gate spawner to obstacle checker
 gateSpawner.setObstacleSpawner(levelSpawner)
+
+// Set initial references for UIManager (coins will be passed directly in update)
+// Use a mutable reference object
+const gameStateRef = { coins: 0, score: 0, distance: 0 }
+uiManager.setReferences(crowdManager, player, gameStateRef)
 
 // Game state
 let score = 0
@@ -321,6 +331,12 @@ function animate() {
   gateSpawner.update(player.mesh.position.z)
   crowdManager.update(player.mesh.position.x, player.mesh.position.z, Date.now() * 0.001)
   
+  // Day 6: Update UIManager HUD
+  gameStateRef.coins = coins
+  gameStateRef.score = score
+  gameStateRef.distance = distance
+  uiManager.update()
+  
   let collectedCoins = 0
   
   if (invulnerableTimer === 0) {
@@ -357,6 +373,8 @@ function animate() {
       const newCount = applyGateEffect(currentCount, gateCollision.type, gateCollision.value)
       if (newCount !== currentCount) {
         crowdManager.rebuild(newCount)
+        // Day 6: Show gate popup
+        uiManager.showGatePopup(gateCollision.type, gateCollision.value)
       }
       scoreEl.style.color = '#ffff00'
     }
@@ -370,6 +388,9 @@ function animate() {
     inEndZone = true
     battleState = 'slowing'
     battleTimer = 0
+    
+    // Day 6: Show battle warning popup
+    uiManager.showBattleWarning()
     
     const difficulty = Math.min(1.5, 1 + (score / 2000))
     enemyCrowd.spawn(difficulty, playerZ)

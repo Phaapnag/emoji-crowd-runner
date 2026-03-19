@@ -1,0 +1,96 @@
+/* ============================================
+   UIManager Styles - Right-top HUD + Status Popups
+   Day 6: Permanent HUD + Temporary Status
+   ============================================ */
+
+/* Right-top HUD - 90% transparent, Neon Cyan */
+.hud-right {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  opacity: 0.9;
+  font-family: 'Quicksand', sans-serif;
+  color: #00f0ff; /* Neon Cyan */
+  text-shadow: 0 0 5px #00f0ff;
+  font-size: 14px;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  z-index: 90;
+  pointer-events: none;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.hud-right .hud-icon {
+  font-size: 14px;
+}
+
+.hud-right span {
+  margin-right: 4px;
+}
+
+/* Center Status Popup - 80% transparent, Neon Pink */
+.status-popup {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  font-family: 'Caveat', cursive;
+  color: #ff2d95; /* Neon Pink */
+  font-size: 28px;
+  text-shadow: 0 0 10px #ff2d95, 0 0 20px rgba(255, 45, 149, 0.5);
+  background: rgba(0, 0, 0, 0.4);
+  padding: 12px 24px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 45, 149, 0.3);
+  z-index: 95;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* Fade In/Out Animation - 2s duration */
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+  15% {
+    opacity: 0.8;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  85% {
+    opacity: 0.8;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+}
+
+.status-popup {
+  animation: fadeInOut 2s ease-in-out forwards;
+}
+
+/* Optional: Different colors for different popup types */
+.status-popup.gate {
+  color: #ffff00; /* Yellow for gates */
+  text-shadow: 0 0 10px #ffff00, 0 0 20px rgba(255, 255, 0, 0.5);
+  border-color: rgba(255, 255, 0, 0.3);
+}
+
+.status-popup.battle {
+  color: #ff2d95; /* Pink for battle */
+  text-shadow: 0 0 10px #ff2d95, 0 0 20px rgba(255, 45, 149, 0.5);
+  border-color: rgba(255, 45, 149, 0.3);
+}
+
+.status-popup.crowd {
+  color: #00f0ff; /* Cyan for crowd changes */
+  text-shadow: 0 0 10px #00f0ff, 0 0 20px rgba(0, 240, 255, 0.5);
+  border-color: rgba(0, 240, 255, 0.3);
+}
