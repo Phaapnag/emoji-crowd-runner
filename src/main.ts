@@ -100,19 +100,23 @@ let battleEnemyCountEl: HTMLElement | null = null
 let inputLeft = false
 let inputRight = false
 
-// Click to restart after battle
-document.addEventListener('click', () => {
+// Unified restart handler for click and Tab key
+function handleRestart() {
   if (battleState === 'ended') {
+    window.location.href = window.location.href
+  } else if (gameOver || gameWon) {
     location.reload()
   }
-})
+}
+
+document.addEventListener('click', handleRestart)
 
 document.addEventListener('keydown', (e) => {
   // Tab to continue after battle (when battleState is 'ended')
   if (battleState === 'ended') {
     if (e.key === 'Tab') {
       e.preventDefault()
-      location.reload()
+      handleRestart()
       return
     }
   }
@@ -153,18 +157,7 @@ document.addEventListener('keyup', (e) => {
   }
 })
 
-// Click to restart / continue
-document.addEventListener('click', () => {
-  if (battleState === 'ended' && finalResult) {
-    if (finalResult === 'win') {
-      gameWon = true
-    } else {
-      gameOver = true
-    }
-  } else if (gameOver || gameWon) {
-    location.reload()
-  }
-})
+// Removed duplicate click listener - now handled by unified handleRestart()
 
 // Touch handling
 let touchStartY = 0
@@ -239,6 +232,7 @@ function handleTouch(touchX: number) {
 }
 
 // Window resize - keep game aspect ratio 500/844
+let resizeInitialized = false
 function updateCameraFOV() {
   // Keep fixed aspect ratio for game camera
   camera.fov = 75
@@ -250,7 +244,11 @@ function updateCameraFOV() {
 }
 
 window.addEventListener('resize', updateCameraFOV)
-updateCameraFOV()
+// Only call once on init to avoid duplicate resize issues
+if (!resizeInitialized) {
+  resizeInitialized = true
+  updateCameraFOV()
+}
 
 // Helper: Create text sprite WITHOUT background box
 function createTextSprite(text: string, color: string, size: number = 3): THREE.Mesh {
@@ -433,13 +431,13 @@ function animate() {
           battleOverlay.style.display = 'none'
         }
         
-        // Show battle status at BOTTOM with neon styling
+        // Show battle status at BOTTOM with neon styling - compact layout
         battleStatusOverlay.innerHTML = `
-          <div class="count friend">👥 ${myCount} 人</div>
-          <div class="divider">━━━━━━━━━━</div>
-          <div class="vs-text">VS</div>
-          <div class="divider">━━━━━━━━━━</div>
-          <div class="count enemy">💀 ${enemyCount} 敵</div>
+          <div class="count-row">
+            <span class="count friend">👥 ${myCount} 人</span>
+            <span class="vs-text">VS</span>
+            <span class="count enemy">💀 ${enemyCount} 敵</span>
+          </div>
         `
         battleStatusOverlay.style.display = 'block'
         
@@ -453,13 +451,13 @@ function animate() {
         battleOverlay.style.bottom = 'auto'
         battleOverlay.style.display = 'block'
         
-        // Show battle status at BOTTOM with neon styling
+        // Show battle status at BOTTOM with neon styling - compact layout
         battleStatusOverlay.innerHTML = `
-          <div class="count friend">👥 ${myCount} 人</div>
-          <div class="divider">━━━━━━━━━━</div>
-          <div class="vs-text">VS</div>
-          <div class="divider">━━━━━━━━━━</div>
-          <div class="count enemy">💀 ${enemyCount} 敵</div>
+          <div class="count-row">
+            <span class="count friend">👥 ${myCount} 人</span>
+            <span class="vs-text">VS</span>
+            <span class="count enemy">💀 ${enemyCount} 敵</span>
+          </div>
         `
         battleStatusOverlay.style.display = 'block'
         
@@ -471,14 +469,14 @@ function animate() {
         // Hide instruction overlay
         battleOverlay.style.display = 'none'
         
-        // Set up HTML structure ONCE when entering charging state
+        // Set up HTML structure ONCE when entering charging state - compact layout
         if (battleTimer === 0) {
           battleStatusOverlay.innerHTML = `
-            <div id="battle-my-count" class="count friend">👥 ${myCount} 人</div>
-            <div class="divider">━━━━━━━━━━</div>
-            <div class="vs-text">VS</div>
-            <div class="divider">━━━━━━━━━━</div>
-            <div id="battle-enemy-count" class="count enemy">💀 ${enemyCount} 敵</div>
+            <div class="count-row">
+              <span id="battle-my-count" class="count friend">👥 ${myCount} 人</span>
+              <span class="vs-text">VS</span>
+              <span id="battle-enemy-count" class="count enemy">💀 ${enemyCount} 敵</span>
+            </div>
           `
           battleStatusOverlay.style.display = 'block'
         }
@@ -538,9 +536,9 @@ function animate() {
             }
             
             battleStatusOverlay.innerHTML = `
-              <div class="result lose">💀 敗北!</div>
-              <div class="count enemy" style="font-size: 28px; margin-top: 16px;">敵人: ${newEnemyCount}</div>
-              <div class="restart-hint">👆 Click 或 Tab 重新開始</div>
+              <div class="result lose" style="font-size: 36px;">💀 敗北!</div>
+              <div class="count enemy" style="font-size: 18px; margin-top: 8px;">敵人: ${newEnemyCount}</div>
+              <div class="restart-hint">👆 Click / Tab 重新開始</div>
             `
           } else if (newEnemyCount <= 0) {
             battleState = 'ended'
@@ -554,9 +552,9 @@ function animate() {
             }
             
             battleStatusOverlay.innerHTML = `
-              <div class="result win">🏆 勝利!</div>
-              <div class="count friend" style="font-size: 28px; margin-top: 16px;">存活: ${newMyCount} 人</div>
-              <div class="restart-hint">👆 Click 或 Tab 重新開始</div>
+              <div class="result win" style="font-size: 36px;">🏆 勝利!</div>
+              <div class="count friend" style="font-size: 18px; margin-top: 8px;">存活: ${newMyCount} 人</div>
+              <div class="restart-hint">👆 Click / Tab 重新開始</div>
             `
           }
         }

@@ -4,13 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Emoji Crowd Runner</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body { 
         width: 100%; 
         height: 100%; 
         overflow: hidden; 
-        background: #0a0a0a;  /* 屏幕外背景 - 純黑色 */
+        background: #0a0a0a;
       }
       body {
         display: flex;
@@ -25,67 +28,250 @@
         aspect-ratio: 500 / 844;
         max-width: 100vw;
         max-height: calc(100vh - 20px);
-        background: linear-gradient(135deg, #2d1b4e 0%, #1a1a2e 100%);  /* 遊戲區域背景 - 深紫色 */
+        background: linear-gradient(180deg, #1a0a2e 0%, #16213e 50%, #0f0f23 100%);
         overflow: hidden;
         flex-shrink: 0;
-        box-shadow: 0 0 50px rgba(0,0,0,0.8);  /* 加強陰影分開左右 */
+        box-shadow: 
+          0 0 60px rgba(233, 69, 96, 0.3),
+          0 0 100px rgba(75, 0, 130, 0.2);
       }
-      /* canvas由JS動態創建 */
+      
+      /* CRT Scanlines Effect */
+      .game-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: repeating-linear-gradient(
+          0deg,
+          rgba(0, 0, 0, 0.1) 0px,
+          rgba(0, 0, 0, 0.1) 1px,
+          transparent 1px,
+          transparent 3px
+        );
+        pointer-events: none;
+        z-index: 200;
+        opacity: 0.3;
+      }
+      
+      /* Neon Border Glow */
+      .game-container::after {
+        content: '';
+        position: absolute;
+        top: -2px;
+        left: -2px;
+        right: -2px;
+        bottom: -2px;
+        border: 2px solid transparent;
+        border-image: linear-gradient(135deg, #ff2d95, #00f0ff, #ff2d95) 1;
+        pointer-events: none;
+        z-index: 201;
+      }
+      
+      /* Score Display - Neon Style */
       #score {
         position: absolute;
         top: 15px;
         right: 15px;
-        color: #ffffff;
-        font-size: 18px;
-        font-weight: bold;
-        font-family: sans-serif;
+        color: #00f0ff;
+        font-size: 20px;
+        font-weight: 700;
+        font-family: 'Quicksand', sans-serif;
         z-index: 100;
-        text-shadow: 2px 2px 4px #000;
+        text-shadow: 
+          0 0 10px #00f0ff,
+          0 0 20px #00f0ff,
+          0 0 30px #00f0ff;
         pointer-events: none;
+        padding: 8px 16px;
+        background: rgba(0, 240, 255, 0.1);
+        border: 1px solid rgba(0, 240, 255, 0.3);
+        border-radius: 8px;
       }
+      
+      /* Battle Overlay - BOSS Text with Neon Glow */
       #battleOverlay {
         position: absolute;
         top: 60px;
         left: 50%;
         transform: translateX(-50%);
         width: 100%;
-        color: #ff4444;
-        font-size: 48px;
-        font-weight: bold;
-        font-family: sans-serif;
+        font-family: 'Caveat', cursive;
         text-align: center;
         z-index: 100;
-        text-shadow: 3px 3px 6px #000;
         pointer-events: none;
       }
+      
+      /* Battle Status Overlay - VS Display - More Compact */
       #battleStatusOverlay {
         position: absolute;
-        bottom: 20px;
+        bottom: 15px;
         left: 50%;
         transform: translateX(-50%);
-        width: 100%;
-        color: #ffffff;
-        font-size: 24px;
-        font-weight: bold;
-        font-family: sans-serif;
+        width: 70%;
+        font-family: 'Quicksand', sans-serif;
         z-index: 100;
-        text-shadow: 2px 2px 4px #000;
         pointer-events: none;
         text-align: center;
+        background: rgba(0, 0, 0, 0.4);
+        padding: 8px 16px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 45, 149, 0.3);
+        box-shadow: 0 0 10px rgba(255, 45, 149, 0.15);
       }
+      
+      /* VS Text - Extra Neon */
+      #battleStatusOverlay .vs-text {
+        font-size: 28px;
+        font-weight: 700;
+        font-family: 'Caveat', cursive;
+        color: #ff2d95;
+        text-shadow: 
+          0 0 6px #ff2d95,
+          0 0 12px #ff2d95;
+        animation: neon-pulse 1.5s ease-in-out infinite;
+        margin: 2px 0;
+      }
+      
+      /* Divider Lines */
+      #battleStatusOverlay .divider {
+        font-size: 18px;
+        color: rgba(0, 240, 255, 0.5);
+        letter-spacing: 2px;
+        margin: 2px 0;
+      }
+      
+      /* Count Numbers - Side by Side */
+      #battleStatusOverlay .count-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin: 2px 0;
+      }
+      
+      /* Count Numbers */
+      #battleStatusOverlay .count {
+        font-size: 20px;
+        font-weight: 700;
+        font-family: 'Quicksand', sans-serif;
+        margin: 0;
+      }
+      
+      #battleStatusOverlay .count.friend {
+        color: #00f0ff;
+        text-shadow: 0 0 10px #00f0ff;
+      }
+      
+      #battleStatusOverlay .count.enemy {
+        color: #ff2d95;
+        text-shadow: 0 0 10px #ff2d95;
+      }
+      
+      /* Win/Loss Result */
+      #battleStatusOverlay .result {
+        font-size: 36px;
+        font-weight: 700;
+        font-family: 'Caveat', cursive;
+        animation: neon-flicker 0.5s ease-in-out infinite;
+      }
+      
+      #battleStatusOverlay .result.win {
+        color: #39ff14;
+        text-shadow: 
+          0 0 10px #39ff14,
+          0 0 20px #39ff14,
+          0 0 40px #39ff14;
+      }
+      
+      #battleStatusOverlay .result.lose {
+        color: #ff3131;
+        text-shadow: 
+          0 0 10px #ff3131,
+          0 0 20px #ff3131,
+          0 0 40px #ff3131;
+      }
+      
+      /* Restart Hint */
+      #battleStatusOverlay .restart-hint {
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.7);
+        margin-top: 10px;
+        font-family: 'Quicksand', sans-serif;
+      }
+      
+      /* Debug Overlay - Retro Style */
       #debugOverlay {
         position: absolute;
-        bottom: 15px;
+        top: 15px;
         left: 15px;
-        color: #ffffff;
-        font-size: 12px;
-        font-family: monospace;
+        color: #39ff14;
+        font-size: 11px;
+        font-family: 'Courier New', monospace;
         z-index: 100;
-        text-shadow: 1px 1px 2px #000;
+        text-shadow: 0 0 5px #39ff14;
         pointer-events: none;
+        padding: 6px 10px;
+        background: rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(57, 255, 20, 0.3);
+        border-radius: 4px;
+        max-width: 150px;
+        overflow: hidden;
+      }
+      
+      /* Animations */
+      @keyframes neon-pulse {
+        0%, 100% { 
+          opacity: 1;
+          filter: brightness(1);
+        }
+        50% { 
+          opacity: 0.8;
+          filter: brightness(1.3);
+        }
+      }
+      
+      @keyframes neon-flicker {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.85; }
+      }
+      
+      /* Instruction Text */
+      .instruction-text {
+        color: #ffffff;
+        font-size: 32px;
+        font-family: 'Caveat', cursive;
+        text-shadow: 
+          0 0 10px rgba(255, 255, 255, 0.8),
+          0 0 20px rgba(0, 240, 255, 0.5);
+        line-height: 1.4;
+      }
+      
+      .boss-text {
+        color: #ff2d95;
+        font-size: 72px;
+        font-family: 'Caveat', cursive;
+        text-shadow: 
+          0 0 10px #ff2d95,
+          0 0 30px #ff2d95,
+          0 0 60px #ff2d95;
+        animation: boss-glow 0.8s ease-in-out infinite;
+      }
+      
+      @keyframes boss-glow {
+        0%, 100% { 
+          transform: scale(1);
+          filter: brightness(1);
+        }
+        50% { 
+          transform: scale(1.05);
+          filter: brightness(1.2);
+        }
       }
     </style>
-    <script type="module" crossorigin src="/assets/index-PtUkMQZB.js"></script>
+    <script type="module" crossorigin src="/assets/index-1tnchEGf.js"></script>
   </head>
   <body>
     <div class="game-container">

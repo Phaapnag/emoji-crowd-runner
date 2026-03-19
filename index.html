@@ -104,69 +104,75 @@
         pointer-events: none;
       }
       
-      /* Battle Status Overlay - VS Display */
+      /* Battle Status Overlay - VS Display - More Compact */
       #battleStatusOverlay {
         position: absolute;
-        bottom: 30px;
+        bottom: 15px;
         left: 50%;
         transform: translateX(-50%);
-        width: 90%;
+        width: 70%;
         font-family: 'Quicksand', sans-serif;
         z-index: 100;
         pointer-events: none;
         text-align: center;
-        background: rgba(0, 0, 0, 0.6);
-        padding: 20px;
-        border-radius: 16px;
-        border: 2px solid rgba(255, 45, 149, 0.5);
-        box-shadow: 
-          0 0 20px rgba(255, 45, 149, 0.3),
-          inset 0 0 30px rgba(255, 45, 149, 0.1);
+        background: rgba(0, 0, 0, 0.4);
+        padding: 8px 16px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 45, 149, 0.3);
+        box-shadow: 0 0 10px rgba(255, 45, 149, 0.15);
       }
       
       /* VS Text - Extra Neon */
       #battleStatusOverlay .vs-text {
-        font-size: 48px;
+        font-size: 28px;
         font-weight: 700;
         font-family: 'Caveat', cursive;
         color: #ff2d95;
         text-shadow: 
-          0 0 10px #ff2d95,
-          0 0 20px #ff2d95,
-          0 0 40px #ff2d95,
-          0 0 80px #ff2d95;
+          0 0 6px #ff2d95,
+          0 0 12px #ff2d95;
         animation: neon-pulse 1.5s ease-in-out infinite;
+        margin: 2px 0;
       }
       
       /* Divider Lines */
       #battleStatusOverlay .divider {
-        font-size: 28px;
-        color: rgba(0, 240, 255, 0.6);
-        letter-spacing: 4px;
-        margin: 8px 0;
+        font-size: 18px;
+        color: rgba(0, 240, 255, 0.5);
+        letter-spacing: 2px;
+        margin: 2px 0;
+      }
+      
+      /* Count Numbers - Side by Side */
+      #battleStatusOverlay .count-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin: 2px 0;
       }
       
       /* Count Numbers */
       #battleStatusOverlay .count {
-        font-size: 36px;
+        font-size: 20px;
         font-weight: 700;
         font-family: 'Quicksand', sans-serif;
-        margin: 12px 0;
+        margin: 0;
       }
       
       #battleStatusOverlay .count.friend {
         color: #00f0ff;
-        text-shadow: 0 0 15px #00f0ff;
+        text-shadow: 0 0 10px #00f0ff;
       }
       
       #battleStatusOverlay .count.enemy {
         color: #ff2d95;
-        text-shadow: 0 0 15px #ff2d95;
+        text-shadow: 0 0 10px #ff2d95;
       }
       
       /* Win/Loss Result */
       #battleStatusOverlay .result {
-        font-size: 48px;
+        font-size: 36px;
         font-weight: 700;
         font-family: 'Caveat', cursive;
         animation: neon-flicker 0.5s ease-in-out infinite;
@@ -190,9 +196,9 @@
       
       /* Restart Hint */
       #battleStatusOverlay .restart-hint {
-        font-size: 16px;
+        font-size: 14px;
         color: rgba(255, 255, 255, 0.7);
-        margin-top: 20px;
+        margin-top: 10px;
         font-family: 'Quicksand', sans-serif;
       }
       
