@@ -71,7 +71,7 @@ let inEndZone = false
 let endZoneTriggered = false
 
 // Battle states
-let battleState: 'none' | 'slowing' | 'waiting' | 'charging' | 'battling' | 'ended' = 'none'
+let battleState: 'none' | 'slowing' | 'waiting' | 'charging' | 'ended' = 'none'
 let battleTimer = 0
 let chargePosition = 0
 let finalResult: 'win' | 'lose' | null = null
