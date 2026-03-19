@@ -39,7 +39,6 @@ export class EnemyCrowd {
     this.spawnZ = playerZ - 15  // 15 units in front of player
     this.initialSpawnZ = this.spawnZ  // FIX: Keep as anchor!
     this.currentZ = this.spawnZ  // Current position starts at spawn
-    console.log('[EnemyCrowd] SPAWN: playerZ:', playerZ, 'spawnZ set to:', this.spawnZ)
     
     // Spread enemies in a wider area (like player crowd)
     for (let i = 0; i < this.count; i++) {
@@ -71,10 +70,7 @@ export class EnemyCrowd {
       
       this.scene.add(mesh)
       this.meshes.push(mesh)
-      console.log('[EnemyCrowd] Added mesh at x:', x.toFixed(1), 'z:', z.toFixed(1))
     }
-    
-    console.log('[EnemyCrowd] Spawned', this.count, 'enemies at z ~', this.spawnZ, '(playerZ was:', playerZ, 'so spawnZ should be', playerZ + 30, ')')
   }
   
   // Get enemy count
@@ -90,15 +86,12 @@ export class EnemyCrowd {
   // Set custom Z for charging animation - set position directly
   setCustomZ(z: number) {
     // FIX: Use initialSpawnZ as anchor, update currentZ instead of spawnZ
-    console.log('[EnemyCrowd] setCustomZ called, z:', z.toFixed(1), 'meshes:', this.meshes.length, 'anchor:', this.initialSpawnZ.toFixed(1))
-    
     for (let i = 0; i < this.meshes.length; i++) {
       if (this.meshes[i] && this.positions[i]) {
         // Use initialSpawnZ as anchor for offset calculation!
         const offsetZ = this.positions[i].z - this.initialSpawnZ
         // Set new position based on new Z + offset
         this.meshes[i].position.z = z + offsetZ
-        if (i === 0) console.log('  [Enemy] mesh[0] z:', this.meshes[i].position.z.toFixed(1), 'offsetZ:', offsetZ.toFixed(1))
       }
     }
     // FIX: Update currentZ, NOT spawnZ! Keep spawnZ as anchor

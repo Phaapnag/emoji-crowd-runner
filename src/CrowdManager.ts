@@ -5,8 +5,8 @@ export type EmojiType = 'shopping' | 'dinosaur' | 'plane' | 'bomb' | 'sparkle'
 export class CrowdManager {
   private scene: THREE.Scene
   private meshes: THREE.Mesh[] = []
-  // Start with 40 for more epic battles!
-  private count = 40
+  // Start with 0 - player collects crowd through gates!
+  private count = 0
   private emojiTypes: EmojiType[] = ['shopping', 'dinosaur', 'plane', 'bomb', 'sparkle']
   private positions: { x: number, z: number, type: EmojiType, offset: number }[] = []
   private colors: { [key: string]: number } = {
@@ -298,11 +298,6 @@ export class CrowdManager {
     const useX = this.overrideX !== null ? this.overrideX : playerX
     const useZ = this.overrideZ !== null ? this.overrideZ : playerZ
     
-    // Debug - show when override is active
-    if (this.overrideZ !== null) {
-      console.log('🎭 Crowd overrideZ:', this.overrideZ.toFixed(1))
-    }
-    
     for (let i = 0; i < this.positions.length; i++) {
       const mesh = this.meshes[i]
       if (!mesh) continue
@@ -366,8 +361,6 @@ export class CrowdManager {
 
   // Set custom Z offset for charging animation
   setCustomZ(zOffset: number) {
-    console.log('[CrowdManager] setCustomZ called, zOffset:', zOffset.toFixed(1), 'positions:', this.positions.length)
-    
     // Set override mode - crowd will move to this Z instead of following player
     // Note: Don't add 0.6 here, update() will add it
     this.overrideZ = zOffset
@@ -384,7 +377,6 @@ export class CrowdManager {
         x: targetX,
         z: targetZ
       }
-      if (i === 0) console.log('  [Crowd] prevPositions[0] z:', targetZ.toFixed(1))
     }
   }
   

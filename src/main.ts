@@ -163,7 +163,6 @@ document.addEventListener('keydown', (e) => {
   
   // Arrow Up or W to start battle
   if ((e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') && battleState === 'waiting') {
-    console.log('[Key] Up arrow - Starting battle!')
     battleState = 'charging'
     battleTimer = 0
     battleOverlay.style.display = 'none'
@@ -237,7 +236,6 @@ document.addEventListener('touchmove', (e) => {
   // Swipe up to start battle
   if (deltaY > 50 && deltaX < 30) {
     if (battleState === 'waiting') {
-      console.log('[Touch] Swipe up - Starting battle!')
       battleState = 'charging'
       battleTimer = 0
       battleOverlay.style.display = 'none'
@@ -335,9 +333,6 @@ function createTextSprite(text: string, color: string, size: number = 3): THREE.
 function animate() {
   requestAnimationFrame(animate)
   
-  // Debug log
-  console.log('[Game] distance:', distance.toFixed(1), 'battleState:', battleState, 'playerZ:', player.mesh.position.z.toFixed(1))
-  
   if (gameOver || gameWon) {
     enemyCrowd.update(Date.now() * 0.001)
     crowdManager.update(player.mesh.position.x, player.mesh.position.z, Date.now() * 0.001)
@@ -416,8 +411,6 @@ function animate() {
   
   // Trigger end zone
   if (!endZoneTriggered && distance >= END_ZONE_DISTANCE) {
-    console.log('🔥🔥🔥 NEW CODE LOADED - END ZONE TRIGGERED 🔥🔥🔥')
-    console.log('[EndZone] Player reached end zone!')
     endZoneTriggered = true
     inEndZone = true
     battleState = 'slowing'
@@ -425,9 +418,6 @@ function animate() {
     
     const difficulty = Math.min(1.5, 1 + (score / 2000))
     enemyCrowd.spawn(difficulty, playerZ)
-    
-    // DEBUG: Show enemy spawn positions
-    console.log('[DEBUG] After spawn - playerZ:', playerZ, 'enemyZ:', enemyCrowd.getEnemyZoneZ(), 'camera.position.z:', camera.position.z)
     
     speed = speed * 0.3
     
@@ -441,7 +431,6 @@ function animate() {
     cameraTransitioning = true
     
     scoreEl.style.color = '#ff0000'
-    console.log('[EndZone] Enemy count:', enemyCrowd.getCount())
   }
   
   // Also start camera transition BEFORE end zone (when approaching)
@@ -549,12 +538,6 @@ function animate() {
         const crowdMoveAmount = (crowdTargetZ - currentCrowdPos) * 0.1  // 10% per frame (slower!)
         const newCrowdZ = currentCrowdPos + crowdMoveAmount
         
-        // Debug - show both targets
-        const crowdSpread = crowdManager.getCrowdSpread()
-        if (battleTimer <= 30 || battleTimer % 30 === 0) {
-          console.log('⚔️', battleTimer, 'enemy:', enemyZ.toFixed(1), 'crowd:', currentCrowdPos.toFixed(1), 'eTarget:', enemyFixedTarget, 'cTarget:', crowdTargetZ)
-        }
-        
         // Apply positions
         enemyCrowd.setCustomZ(newEnemyZ)
         crowdManager.setCustomZ(newCrowdZ)
@@ -568,8 +551,6 @@ function animate() {
           
           const newMyCount = crowdManager.getRemainingCount()
           const newEnemyCount = enemyCrowd.getCount()
-          
-          console.log('[Battle] Clash during charge! My:', newMyCount, 'Enemy:', newEnemyCount)
           
           // Show updated counts
           battleStatusOverlay.innerHTML = `👥 ${newMyCount} vs 💀 ${newEnemyCount}`
@@ -637,8 +618,6 @@ function animate() {
           
           const newMyCount = crowdManager.getRemainingCount()
           const newEnemyCount = enemyCrowd.getCount()
-          
-          console.log('[Battle] Clash! My:', newMyCount, 'Enemy:', newEnemyCount)
           
           // Show updated counts in center
           battleStatusOverlay.innerHTML = `👥 ${newMyCount} vs 💀 ${newEnemyCount}`
