@@ -8,6 +8,8 @@ import { EnemyCrowd } from './EnemyCrowd'
 
 // Scene setup
 const scene = new THREE.Scene()
+// Sunset gradient background
+scene.background = new THREE.Color(0xff6b6b)
 
 // Camera
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
@@ -419,7 +421,7 @@ function animate() {
           
           if (!bossTextSprite) {
             bossTextSprite = createTextSprite('BOSS', '#ff0000', 3)
-            bossTextSprite.position.set(0, 4, playerZ - 5)
+            bossTextSprite.position.set(0, 4, playerZ - 10)  // Show in front of player
             scene.add(bossTextSprite)
           }
         }
@@ -471,20 +473,18 @@ function animate() {
           console.log('⚔️ CHARGE frame', battleTimer, '| playerZ:', playerZ.toFixed(1), '| enemyZ:', enemyZ.toFixed(1), '| progress:', chargeProgress.toFixed(2))
         }
         
-        // Enemies move TOWARD player - FIXED target, not playerZ!
-        // FIX: Use fixed target (initial spawn position), not dynamic playerZ
-        const enemyFixedTarget = -58.5  // Meeting point!
+        // FIX: Use dynamic meeting point based on playerZ
+        // Enemy spawns at playerZ - 15, crowd at playerZ
+        // Meeting point: midpoint = playerZ - 7.5
+        const meetingPoint = playerZ - 7.5  // Dynamic!
         
-        // Enemy move: 10% per frame (slower!)
-        const enemyMoveAmount = (enemyFixedTarget - enemyZ) * 0.1
+        // Enemy move: 10% per frame toward meeting point
+        const enemyMoveAmount = (meetingPoint - enemyZ) * 0.1
         const newEnemyZ = enemyZ + enemyMoveAmount
         
-        // Crowd moves TOWARD enemies - but FIXED target (not moving with enemy!)
-        // FIX: Use the INITIAL enemy spawn position, not current position
-        const initialEnemyZ = -65  // Fixed spawn position
-        const crowdTargetZ = -58.5  // Same meeting point!
+        // Crowd moves toward meeting point
         const currentCrowdPos = crowdManager.getCurrentZ()
-        const crowdMoveAmount = (crowdTargetZ - currentCrowdPos) * 0.1  // 10% per frame (slower!)
+        const crowdMoveAmount = (meetingPoint - currentCrowdPos) * 0.1
         const newCrowdZ = currentCrowdPos + crowdMoveAmount
         
         // Apply positions
@@ -651,21 +651,23 @@ function animate() {
   camera.position.x = 0
   if (inEndZone || cameraTransitioning) {
     // End zone: camera higher and further back to show player+crowd + enemies
-    const targetZ = player.mesh.position.z + cameraTargetZ
+    // Look at the MEETING POINT (playerZ - 7.5), not just playerZ
+    const battleLookZ = playerZ - 7.5  // Where crowd and enemies meet
+    const targetZ = playerZ + cameraTargetZ
     const targetY = cameraTargetY
     camera.position.z += (targetZ - camera.position.z) * cameraLerp
     camera.position.y += (targetY - camera.position.y) * cameraLerp
-    camera.lookAt(0, 2, player.mesh.position.z)
+    camera.lookAt(0, 2, battleLookZ)  // Look at meeting point!
     
     // Stop transitioning when close enough
-    if (Math.abs(camera.position.y - cameraTargetY) < 0.1 && Math.abs(camera.position.z - (player.mesh.position.z + cameraTargetZ)) < 0.5) {
+    if (Math.abs(camera.position.y - cameraTargetY) < 0.1 && Math.abs(camera.position.z - (playerZ + cameraTargetZ)) < 0.5) {
       cameraTransitioning = false
     }
   } else {
     // Normal gameplay
-    camera.position.z = player.mesh.position.z + 10
+    camera.position.z = playerZ + 10
     camera.position.y = 5
-    camera.lookAt(0, 0, player.mesh.position.z)
+    camera.lookAt(0, 0, playerZ)
   }
   
   distance += speed
