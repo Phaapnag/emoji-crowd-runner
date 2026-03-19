@@ -71,6 +71,23 @@ export class GateSpawner {
     // Move spawn position further
     this.lastSpawnZ -= 80 // Fixed distance between gates
     
+    // Check obstacle collision
+    if (this.obstacleSpawner && this.obstacleSpawner.isTooCloseToObstacle(this.lastSpawnZ)) {
+      // Skip this position, try next
+      this.lastSpawnZ -= 10
+    }
+    
+    // Spawn 2 gates
+    const leftPositions = [-4, -2]
+    const rightPositions = [2, 4]
+    const leftX = leftPositions[Math.floor(Math.random() * leftPositions.length)]
+    const rightX = rightPositions[Math.floor(Math.random() * rightPositions.length)]
+    
+    const type1 = Gate.getRandomType()
+    const type2 = Gate.getRandomType()
+    const effect1 = Gate.generateEffect(type1, 0)
+    const effect2 = Gate.generateEffect(type2, 0)
+    
     this.activateGate(leftX, type1, effect1.text, this.lastSpawnZ, effect1.value)
     this.activateGate(rightX, type2, effect2.text, this.lastSpawnZ, effect2.value)
   }
