@@ -8,8 +8,8 @@ import { EnemyCrowd } from './EnemyCrowd'
 
 // Scene setup
 const scene = new THREE.Scene()
-// Dark background for nice contrast
-scene.background = new THREE.Color(0x1a1a2e)
+// Purple gradient background (matches game container)
+scene.background = new THREE.Color(0x2d1b4e)
 
 // Camera
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)

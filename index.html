@@ -10,7 +10,7 @@
         width: 100%; 
         height: 100%; 
         overflow: hidden; 
-        background: #000; 
+        background: #0a0a0a;  /* 屏幕外背景 - 純黑色 */
       }
       body {
         display: flex;
@@ -23,7 +23,7 @@
         aspect-ratio: 390 / 844;
         max-width: 390px;
         max-height: calc(100vh - 20px);
-        background: #1a1a2e;  /* Dark blue-black for nice contrast */
+        background: linear-gradient(135deg, #2d1b4e 0%, #1a1a2e 100%);  /* 遊戲區域背景 - 深紫色 */
         overflow: hidden;
       }
       canvas {
@@ -90,7 +90,7 @@
       <div id="battleOverlay"></div>
       <div id="battleStatusOverlay"></div>
       <div id="debugOverlay"></div>
-      <script type="module" src="/src/main.ts?v=8-FORCE-NEW"></script>
+      <script type="module" src="/src/main.ts?v=9-FORCE-NEW"></script>
     </div>
   </body>
 </html>
