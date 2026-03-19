@@ -12,13 +12,15 @@ const scene = new THREE.Scene()
 scene.background = new THREE.Color(0x2d1b4e)
 
 // Camera
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
+const camera = new THREE.PerspectiveCamera(75, 390 / 844, 0.1, 1000)
 camera.position.set(0, 5, 12)
 camera.lookAt(0, 0, 0)
 
-// Renderer
+// Renderer - use fixed 390x844 size
+const GAME_WIDTH = 390
+const GAME_HEIGHT = 844
 const renderer = new THREE.WebGLRenderer({ antialias: true })
-renderer.setSize(window.innerWidth, window.innerHeight)
+renderer.setSize(GAME_WIDTH, GAME_HEIGHT)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 renderer.shadowMap.enabled = true
 document.body.appendChild(renderer.domElement)
@@ -225,21 +227,14 @@ function handleTouch(touchX: number) {
   }
 }
 
-// Window resize
+// Window resize - keep game at fixed 390x844
 function updateCameraFOV() {
-  const aspect = window.innerWidth / window.innerHeight
-  
-  if (aspect < 0.5) {
-    camera.fov = 90
-    camera.position.z = 8
-  } else {
-    camera.fov = 75
-    camera.position.z = 12
-  }
-  
-  camera.aspect = aspect
+  // Keep fixed aspect ratio for game camera
+  camera.fov = 75
+  camera.aspect = GAME_WIDTH / GAME_HEIGHT
+  camera.position.z = 12
   camera.updateProjectionMatrix()
-  renderer.setSize(window.innerWidth, window.innerHeight)
+  // DO NOT resize renderer - keep 390x844
 }
 
 window.addEventListener('resize', updateCameraFOV)
@@ -409,10 +404,13 @@ function animate() {
       case 'slowing':
         battleTimer++
         
-        // Show BOSS text using HTML overlay (centered!)
+        // Show BOSS text using HTML overlay (at TOP!)
         if (battleTimer < 60) {
           battleOverlay.innerHTML = '👹 BOSS'
           battleOverlay.style.color = '#ff4444'
+          battleOverlay.style.top = '60px'
+          battleOverlay.style.bottom = 'auto'
+          battleOverlay.style.fontSize = '64px'
           battleOverlay.style.display = 'block'
         } else {
           battleOverlay.style.display = 'none'
@@ -425,7 +423,7 @@ function animate() {
           battleOverlay.style.display = 'none'
         }
         
-        // Show battle status at bottom with more info
+        // Show battle status at BOTTOM with more info
         battleStatusOverlay.innerHTML = `
           <div>👥 ${myCount} 人</div>
           <div style="font-size: 32px; margin: 5px 0;">─────────</div>
@@ -440,13 +438,15 @@ function animate() {
         break
         
       case 'waiting':
-        // Show battle instruction
+        // Show battle instruction at TOP
         battleOverlay.innerHTML = '⚔️<br>向上掃 / 按↑<br>開始戰鬥!'
         battleOverlay.style.color = '#ffffff'
-        battleOverlay.style.fontSize = '36px'
+        battleOverlay.style.fontSize = '32px'
+        battleOverlay.style.top = '60px'
+        battleOverlay.style.bottom = 'auto'
         battleOverlay.style.display = 'block'
         
-        // Show battle status at bottom
+        // Show battle status at BOTTOM
         battleStatusOverlay.innerHTML = `
           <div>👥 ${myCount} 人</div>
           <div style="font-size: 32px; margin: 5px 0;">─────────</div>

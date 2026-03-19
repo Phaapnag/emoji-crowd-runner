@@ -10,10 +10,10 @@ export class RoadSpawner {
   constructor(scene: THREE.Scene) {
     this.scene = scene
     
-    // Road surface - darker purple for contrast with purple background
+    // Road surface - light gray for better visibility
     const groundGeo = new THREE.PlaneGeometry(16, 1000)
     const groundMat = new THREE.MeshStandardMaterial({ 
-      color: 0x1e1e3e,  // Dark purple road
+      color: 0x666666,  // Light gray
       roughness: 0.9,
       metalness: 0.1
     })
