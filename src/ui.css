@@ -1,61 +1,51 @@
 /* ============================================
-   UIManager Styles - Left-top HUD + Status Popups
-   Day 6: Unified HUD with existing game info
+   UIManager Styles - Top-center Horizontal HUD
+   Day 6: Single horizontal bar at top
    ============================================ */
 
-/* Left-top HUD - Vertical layout, matches existing score style */
-.hud-left {
+/* Top-center HUD - Horizontal layout */
+.hud-top {
   position: absolute;
-  top: 15px;
-  left: 15px;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
   opacity: 0.9;
   font-family: 'Quicksand', sans-serif;
   color: #00f0ff; /* Neon Cyan */
   text-shadow: 0 0 5px #00f0ff;
   font-size: 14px;
-  background: rgba(0, 0, 0, 0.3);
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px solid rgba(0, 240, 255, 0.2);
+  background: rgba(0, 0, 0, 0.4);
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(0, 240, 255, 0.3);
   z-index: 90;
   pointer-events: none;
-}
-
-.hud-left .hud-row {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin: 2px 0;
+  gap: 8px;
+  white-space: nowrap;
 }
 
-.hud-left .hud-icon {
+.hud-top .hud-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.hud-top .hud-icon {
   font-size: 14px;
 }
 
-/* Unified Score Display - Now matches HUD style */
-#score {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  color: #00f0ff;
-  font-size: 16px;
-  font-weight: 700;
-  font-family: 'Quicksand', sans-serif;
-  z-index: 100;
-  text-shadow: 
-    0 0 5px #00f0ff;
-  pointer-events: none;
-  padding: 8px 12px;
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(0, 240, 255, 0.2);
-  border-radius: 8px;
-  line-height: 1.4;
+.hud-top .hud-sep {
+  color: rgba(0, 240, 255, 0.4);
+  font-size: 12px;
 }
 
 /* Center Status Popup - 80% transparent, Neon Pink */
+/* Positioned at 40% from top to avoid overlapping with top HUD */
 .status-popup {
   position: absolute;
-  top: 50%;
+  top: 40%;
   left: 50%;
   transform: translate(-50%, -50%);
   opacity: 0;
@@ -89,6 +79,25 @@
   100% {
     opacity: 0;
     transform: translate(-50%, -50%) scale(0.8);
+  }
+}
+
+@keyframes fadeInOutTop {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.8);
+  }
+  15% {
+    opacity: 0.8;
+    transform: translateX(-50%) scale(1);
+  }
+  85% {
+    opacity: 0.8;
+    transform: translateX(-50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.8);
   }
 }
 

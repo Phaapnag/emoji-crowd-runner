@@ -34,22 +34,26 @@ export class UIManager {
     this.gameStateRef = gameState
   }
   
-  // Create left-top HUD element (vertical layout)
+  // Create top-center HUD element (horizontal layout)
   private createHUD() {
     this.hudElement = document.createElement('div')
-    this.hudElement.id = 'hud-left'
-    this.hudElement.className = 'hud-left'
+    this.hudElement.id = 'hud-top'
+    this.hudElement.className = 'hud-top'
     this.hudElement.innerHTML = `
-      <div class="hud-row"><span class="hud-icon">👥</span> <span id="hud-crowd">0</span></div>
-      <div class="hud-row"><span class="hud-icon">🪙</span> <span id="hud-coins">0</span></div>
-      <div class="hud-row"><span class="hud-icon">🏃</span> <span id="hud-distance">0.0</span>km</div>
-      <div class="hud-row"><span class="hud-icon">❤️</span> <span id="hud-lives">3</span></div>
-      <div class="hud-row"><span class="hud-icon">🏆</span> <span id="hud-score">0</span></div>
+      <span class="hud-item"><span class="hud-icon">👥</span> <span id="hud-crowd">0</span></span>
+      <span class="hud-sep">|</span>
+      <span class="hud-item"><span class="hud-icon">🪙</span> <span id="hud-coins">0</span></span>
+      <span class="hud-sep">|</span>
+      <span class="hud-item"><span class="hud-icon">🏃</span> <span id="hud-distance">0.0</span>km</span>
+      <span class="hud-sep">|</span>
+      <span class="hud-item"><span class="hud-icon">❤️</span> <span id="hud-lives">3</span></span>
+      <span class="hud-sep">|</span>
+      <span class="hud-item"><span class="hud-icon">🏆</span> <span id="hud-score">0</span></span>
     `
     this.container.appendChild(this.hudElement)
   }
   
-  // Create center popup element
+  // Create center popup element (positioned below the top HUD)
   private createPopup() {
     this.popupElement = document.createElement('div')
     this.popupElement.id = 'status-popup'
