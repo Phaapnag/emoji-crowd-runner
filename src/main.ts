@@ -703,7 +703,10 @@ function animate() {
   const cameraLerp = cameraTransitioning ? 0.02 : 1  // 3 seconds to transition
   camera.position.x = 0
   
-  if (inEndZone) {
+  // Determine camera mode based on battle state
+  const isInBattle = inEndZone && (battleState === 'slowing' || battleState === 'waiting' || battleState === 'charging')
+  
+  if (isInBattle) {
     // During battle: camera shows player + crowd + enemies
     const battleLookZ = playerZ - 7.5  // Where crowd and enemies meet
     const targetZ = playerZ + cameraTargetZ
@@ -712,7 +715,7 @@ function animate() {
     camera.position.y += (targetY - camera.position.y) * cameraLerp
     camera.lookAt(0, 2, battleLookZ)
   } else if (cameraTransitioning) {
-    // Post-wave transition: move camera back to normal position
+    // Post-wave transition or normal: move camera to normal position
     const targetZ = playerZ + 10
     const targetY = 5
     camera.position.z += (targetZ - camera.position.z) * cameraLerp
