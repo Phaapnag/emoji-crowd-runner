@@ -61,17 +61,15 @@ gateSpawner.setObstacleSpawner(levelSpawner)
 
 // Set initial references for UIManager (coins will be passed directly in update)
 // Use a mutable reference object
-const gameStateRef = { coins: 0, score: 0, distance: 0, lives: 3 }
+const gameStateRef = { coins: 0, score: 0, distance: 0 }
 uiManager.setReferences(crowdManager, player, gameStateRef)
 
 // Game state
 let score = 0
 let distance = 0
 let coins = 0
-let lives = 3
 let speed = 0.28
 let speedRecoveryTimer = 0
-let invulnerableTimer = 0
 let gameOver = false
 let gameWon = false
 let gameCompleted = false // After wave 8
@@ -335,50 +333,45 @@ function animate() {
   gameStateRef.coins = coins
   gameStateRef.score = score
   gameStateRef.distance = distance
-  gameStateRef.lives = lives
   uiManager.update(!inEndZone) // Hide HUD during battle
   
   let collectedCoins = 0
   
-  if (invulnerableTimer === 0) {
-    const crowdPositions = crowdManager.getCrowdPositions()
-    const collision = levelSpawner.checkCollisions(player.mesh, crowdPositions)
-    collectedCoins = collision.collectedCoins
-    
-    if (collision.hitObstacle && collision.crowdHits && collision.crowdHits.length > 0) {
-      crowdManager.eliminateByIndices(collision.crowdHits)
-      scoreEl.style.color = '#ff8800'
+  const crowdPositions = crowdManager.getCrowdPositions()
+  const collision = levelSpawner.checkCollisions(player.mesh, crowdPositions)
+  collectedCoins = collision.collectedCoins
+  
+  if (collision.hitObstacle && collision.crowdHits && collision.crowdHits.length > 0) {
+    crowdManager.eliminateByIndices(collision.crowdHits)
+    scoreEl.style.color = '#ff8800'
+  }
+  
+  if (collision.hitRed) {
+    speed = 0.1
+    speedRecoveryTimer = 60
+    scoreEl.style.color = '#ff6b6b'
+  }
+  
+  if (collision.hitPurple) {
+    // Purple obstacle: eliminate one crowd member
+    const currentCount = crowdManager.getRemainingCount()
+    if (currentCount > 0) {
+      crowdManager.rebuild(currentCount - 1)
+      uiManager.showPopup('💥 -1 人！', true)
     }
-    
-    if (collision.hitRed) {
-      speed = 0.1
-      speedRecoveryTimer = 60
-      scoreEl.style.color = '#ff6b6b'
+    scoreEl.style.color = '#ff0000'
+  }
+  
+  const gateCollision = gateSpawner.checkCollision(player.mesh)
+  if (gateCollision) {
+    const currentCount = crowdManager.getRemainingCount()
+    const newCount = applyGateEffect(currentCount, gateCollision.type, gateCollision.value)
+    if (newCount !== currentCount) {
+      crowdManager.rebuild(newCount)
+      // Day 6: Show gate popup
+      uiManager.showGatePopup(gateCollision.type, gateCollision.value)
     }
-    
-    if (collision.hitPurple) {
-      lives--
-      invulnerableTimer = 60
-      scoreEl.style.color = '#ff0000'
-      
-      if (lives <= 0) {
-        gameOver = true
-        scoreEl.innerHTML = `💥 Game Over!<br>Score: ${score}<br>🪙 ${coins}<br><small>Tap to restart</small>`
-        return
-      }
-    }
-    
-    const gateCollision = gateSpawner.checkCollision(player.mesh)
-    if (gateCollision) {
-      const currentCount = crowdManager.getRemainingCount()
-      const newCount = applyGateEffect(currentCount, gateCollision.type, gateCollision.value)
-      if (newCount !== currentCount) {
-        crowdManager.rebuild(newCount)
-        // Day 6: Show gate popup
-        uiManager.showGatePopup(gateCollision.type, gateCollision.value)
-      }
-      scoreEl.style.color = '#ffff00'
-    }
+    scoreEl.style.color = '#ffff00'
   }
   
   const playerZ = player.mesh.position.z
@@ -675,13 +668,6 @@ function animate() {
     }
   }
   
-  if (invulnerableTimer > 0) {
-    invulnerableTimer--
-    player.mesh.visible = Math.floor(invulnerableTimer / 5) % 2 === 0
-  } else {
-    player.mesh.visible = true
-  }
-  
   coins += collectedCoins
    
   // Hide battle status when not in end zone
@@ -735,7 +721,7 @@ function animate() {
   
   const crowdCount = crowdManager.getRemainingCount()
   if (battleState === 'none') {
-    let debugInfo = `👥 ${crowdCount} | 🛒 ${score} 🪙 ${coins} ❤️ ${lives} | D:${Math.floor(distance)}`
+    let debugInfo = `👥 ${crowdCount} | 🛒 ${score} 🪙 ${coins} | D:${Math.floor(distance)}`
     scoreEl.textContent = debugInfo
   }
   

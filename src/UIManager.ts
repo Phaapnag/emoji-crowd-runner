@@ -46,8 +46,6 @@ export class UIManager {
       <span class="hud-sep">|</span>
       <span class="hud-item"><span class="hud-icon">🏃</span> <span id="hud-distance">0.0</span>km</span>
       <span class="hud-sep">|</span>
-      <span class="hud-item"><span class="hud-icon">❤️</span> <span id="hud-lives">3</span></span>
-      <span class="hud-sep">|</span>
       <span class="hud-item"><span class="hud-icon">🏆</span> <span id="hud-score">0</span></span>
     `
     this.container.appendChild(this.hudElement)
@@ -73,7 +71,6 @@ export class UIManager {
     
     const crowdCount = this.crowdManagerRef.getRemainingCount()
     const coins = this.gameStateRef.coins
-    const lives = this.gameStateRef.lives
     const score = this.gameStateRef.score
     const distanceKm = (Math.abs(this.playerRef.mesh.position.z) / 100).toFixed(1)
     
@@ -81,13 +78,11 @@ export class UIManager {
     const hudCrowd = document.getElementById('hud-crowd')
     const hudCoins = document.getElementById('hud-coins')
     const hudDistance = document.getElementById('hud-distance')
-    const hudLives = document.getElementById('hud-lives')
     const hudScore = document.getElementById('hud-score')
     
     if (hudCrowd) hudCrowd.textContent = String(crowdCount)
     if (hudCoins) hudCoins.textContent = String(coins)
     if (hudDistance) hudDistance.textContent = distanceKm
-    if (hudLives) hudLives.textContent = String(lives)
     if (hudScore) hudScore.textContent = String(score)
   }
   
