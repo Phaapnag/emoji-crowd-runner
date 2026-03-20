@@ -619,8 +619,8 @@ function animate() {
           // FIX 1: Clear crowd override so they follow player again
           crowdManager.clearOverride()
           
-          // FIX 2: Reset gate spawner to start spawning again
-          gateSpawner.reset()
+          // FIX 2: Reset gate spawner to start spawning again (pass playerZ)
+          gateSpawner.reset(playerZ)
           
           // FIX 3: Clear old enemies from battle
           enemyCrowd.clear()
@@ -690,8 +690,13 @@ function animate() {
     battleStatusOverlay.style.display = 'none'
   }
   
-  // Update debug camera info
-  debugOverlay.textContent = `Cam: x=${camera.position.x.toFixed(1)} y=${camera.position.y.toFixed(1)} z=${camera.position.z.toFixed(1)} | D:${Math.floor(distance)} | State:${battleState}`
+  // Update debug camera info (show on screen for debugging)
+  // Show camera X, Y, Z positions
+  const camDebugEl = document.getElementById('cam-debug')
+  if (camDebugEl) {
+    camDebugEl.textContent = `Cam: x=${camera.position.x.toFixed(1)} y=${camera.position.y.toFixed(1)} z=${camera.position.z.toFixed(1)} | Wave:${currentWave} | State:${battleState}`
+  }
+  debugOverlay.textContent = `PZ:${playerZ.toFixed(0)} | Dist:${Math.floor(distance)} | Speed:${speed.toFixed(2)}`
   
   // Camera - gradual transition to battle view (3 seconds = lerp 0.02)
   const cameraLerp = cameraTransitioning ? 0.02 : 1  // 3 seconds to transition

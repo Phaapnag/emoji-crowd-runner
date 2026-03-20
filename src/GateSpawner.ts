@@ -166,11 +166,12 @@ export class GateSpawner {
   }
   
   // Reset spawning for new game
-  reset() {
+  reset(playerZ: number = 0) {
     this.spawningDisabled = false
     this.initialSpawned = false
-    this.lastSpawnZ = -100
-    this.playerZAtLastSpawn = 0
+    // FIX: Set spawn position AHEAD of player, not behind
+    this.lastSpawnZ = playerZ - 50  // Spawn 50 units in front of player
+    this.playerZAtLastSpawn = playerZ
   }
   
   dispose() {
