@@ -42,7 +42,7 @@ export class UIManager {
     this.hudElement.innerHTML = `
       <div class="hud-row"><span class="hud-icon">👥</span> <span id="hud-crowd">0</span></div>
       <div class="hud-row"><span class="hud-icon">🪙</span> <span id="hud-coins">0</span></div>
-      <div class="hud-row"><span class="hud-icon">🏃</span> <span id="hud-distance">0.0</span>人/km</div>
+      <div class="hud-row"><span class="hud-icon">🏃</span> <span id="hud-distance">0.0</span>km</div>
       <div class="hud-row"><span class="hud-icon">❤️</span> <span id="hud-lives">3</span></div>
       <div class="hud-row"><span class="hud-icon">🏆</span> <span id="hud-score">0</span></div>
     `
