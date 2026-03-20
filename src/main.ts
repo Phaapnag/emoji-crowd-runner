@@ -608,7 +608,6 @@ function animate() {
         // Continue: after 3 seconds, start next wave
         postWinTimer++
         if (postWinTimer >= 180) { // 3 seconds at 60fps
-          const remainingCrowd = crowdManager.getRemainingCount()
           currentWave++
           
           // Reset for next wave
@@ -616,6 +615,15 @@ function animate() {
           endZoneTriggered = false
           battleState = 'none'
           speed = 0.28
+          
+          // FIX 1: Clear crowd override so they follow player again
+          crowdManager.clearOverride()
+          
+          // FIX 2: Reset gate spawner to start spawning again
+          gateSpawner.reset()
+          
+          // FIX 3: Clear old enemies from battle
+          enemyCrowd.clear()
           
           // Reset camera to normal
           cameraTargetY = 5
@@ -688,18 +696,25 @@ function animate() {
   // Camera - gradual transition to battle view (3 seconds = lerp 0.02)
   const cameraLerp = cameraTransitioning ? 0.02 : 1  // 3 seconds to transition
   camera.position.x = 0
-  if (inEndZone || cameraTransitioning) {
-    // End zone: camera higher and further back to show player+crowd + enemies
-    // Look at the MEETING POINT (playerZ - 7.5), not just playerZ
+  
+  if (inEndZone) {
+    // During battle: camera shows player + crowd + enemies
     const battleLookZ = playerZ - 7.5  // Where crowd and enemies meet
     const targetZ = playerZ + cameraTargetZ
     const targetY = cameraTargetY
     camera.position.z += (targetZ - camera.position.z) * cameraLerp
     camera.position.y += (targetY - camera.position.y) * cameraLerp
-    camera.lookAt(0, 2, battleLookZ)  // Look at meeting point!
+    camera.lookAt(0, 2, battleLookZ)
+  } else if (cameraTransitioning) {
+    // Post-wave transition: move camera back to normal position
+    const targetZ = playerZ + 10
+    const targetY = 5
+    camera.position.z += (targetZ - camera.position.z) * cameraLerp
+    camera.position.y += (targetY - camera.position.y) * cameraLerp
+    camera.lookAt(0, 0, playerZ)  // Look at player directly
     
     // Stop transitioning when close enough
-    if (Math.abs(camera.position.y - cameraTargetY) < 0.1 && Math.abs(camera.position.z - (playerZ + cameraTargetZ)) < 0.5) {
+    if (Math.abs(camera.position.y - 5) < 0.1 && Math.abs(camera.position.z - (playerZ + 10)) < 0.5) {
       cameraTransitioning = false
     }
   } else {
