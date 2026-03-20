@@ -687,7 +687,7 @@ function animate() {
     camDebugEl.textContent = `Cam: x=${camera.position.x.toFixed(1)} y=${camera.position.y.toFixed(1)} z=${camera.position.z.toFixed(1)} | Wave:${currentWave} | State:${battleState}`
   }
   // debugOverlay is hidden, keep it that way
-  debugOverlay.textContent = `PZ:${playerZ.toFixed(0)}`
+  debugOverlay.textContent = `PZ:${playerZ.toFixed(0)} CamZ:${camera.position.z.toFixed(0)}`
   
   // Camera - gradual transition to battle view (3 seconds = lerp 0.02)
   const cameraLerp = cameraTransitioning ? 0.02 : 1  // 3 seconds to transition
@@ -705,10 +705,11 @@ function animate() {
     const battleLookZ = playerZ - 5  // Look slightly ahead of player
     camera.lookAt(0, 2, battleLookZ)
   } else if (cameraTransitioning) {
-    // Post-wave transition: move camera back to normal Y position
-    const targetY = 5
-    camera.position.y += (targetY - camera.position.y) * cameraLerp
-    camera.lookAt(0, 0, playerZ)  // Look at player directly
+    // Post-wave transition: move camera back to normal position
+    // CRITICAL: Always follow player in Z!
+    camera.position.z = playerZ + 12  // MUST follow player!
+    camera.position.y += (5 - camera.position.y) * cameraLerp
+    camera.lookAt(0, 2, playerZ)
     
     // Stop transitioning when close enough
     if (Math.abs(camera.position.y - 5) < 0.1) {
@@ -727,7 +728,7 @@ function animate() {
   
   const crowdCount = crowdManager.getRemainingCount()
   if (battleState === 'none') {
-    let debugInfo = `👥 ${crowdCount} | 🛒 ${score} 🪙 ${coins} | D:${Math.floor(distance)}`
+    let debugInfo = `PZ${playerZ.toFixed(0)} 👥${crowdCount} 🛒${score} 🪙${coins}`
     scoreEl.textContent = debugInfo
   }
   
