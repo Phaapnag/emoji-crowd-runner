@@ -74,17 +74,32 @@ let speedRecoveryTimer = 0
 let invulnerableTimer = 0
 let gameOver = false
 let gameWon = false
+let gameCompleted = false // After wave 8
 
-// End zone settings - DEBUG: quick test at 50!
+// Wave/Level system
+let currentWave = 1
+const MAX_WAVES = 8
+
+// Enemy count per wave: 30, 40, 50, 60, 70, 80, 90, 100
+const ENEMY_COUNT_PER_WAVE = [30, 40, 50, 60, 70, 80, 90, 100]
+
+// Crowd max per wave: 50, 50, 60, 70, 80, 90, 100, 100
+const CROWD_MAX_PER_WAVE = [50, 50, 60, 70, 80, 90, 100, 100]
+
+// End zone settings
 const END_ZONE_DISTANCE = 900
 let inEndZone = false
 let endZoneTriggered = false
+let nextWaveDistance = 0 // Distance for next wave trigger
 
 // Battle states
-let battleState: 'none' | 'slowing' | 'waiting' | 'charging' | 'ended' = 'none'
+let battleState: 'none' | 'slowing' | 'waiting' | 'charging' | 'waveComplete' = 'none'
 let battleTimer = 0
 let chargePosition = 0
 let finalResult: 'win' | 'lose' | null = null
+
+// Post-win state for continuing
+let postWinTimer = 0
 
 // 3D Text sprites
 let bossTextSprite: THREE.Mesh | null = null
@@ -116,9 +131,8 @@ let inputRight = false
 
 // Unified restart handler for click and Tab key
 function handleRestart() {
-  if (battleState === 'ended') {
-    window.location.href = window.location.href
-  } else if (gameOver || gameWon) {
+  // Only handle restart for game over/complete, not wave wins
+  if (gameOver || gameCompleted) {
     location.reload()
   }
 }
@@ -126,8 +140,8 @@ function handleRestart() {
 document.addEventListener('click', handleRestart)
 
 document.addEventListener('keydown', (e) => {
-  // Tab to continue after battle (when battleState is 'ended')
-  if (battleState === 'ended') {
+  // Tab to restart only for game over/complete
+  if (gameOver || gameCompleted) {
     if (e.key === 'Tab') {
       e.preventDefault()
       handleRestart()
@@ -178,16 +192,7 @@ let touchStartY = 0
 let touchStartX = 0
 
 document.addEventListener('touchstart', (e) => {
-  if (battleState === 'ended' && finalResult) {
-    if (finalResult === 'win') {
-      gameWon = true
-    } else {
-      gameOver = true
-    }
-    return
-  }
-  
-  if (gameOver || gameWon) {
+  if (gameOver || gameCompleted) {
     location.reload()
     return
   }
@@ -314,15 +319,6 @@ function animate() {
     return
   }
   
-  if (battleState === 'ended') {
-    if (resultTextSprite) {
-      resultTextSprite.rotation.y += 0.02
-    }
-    
-    renderer.render(scene, camera)
-    return
-  }
-  
   // Update player - freeze movement in end zone
   if (inEndZone) {
     // Disable left/right movement in end zone
@@ -388,7 +384,8 @@ function animate() {
   const playerZ = player.mesh.position.z
   
   // Trigger end zone
-  if (!endZoneTriggered && distance >= END_ZONE_DISTANCE) {
+  const triggerDistance = nextWaveDistance > 0 ? nextWaveDistance : END_ZONE_DISTANCE
+  if (!endZoneTriggered && distance >= triggerDistance) {
     endZoneTriggered = true
     inEndZone = true
     battleState = 'slowing'
@@ -397,8 +394,9 @@ function animate() {
     // Day 6: Show battle warning popup
     uiManager.showBattleWarning()
     
-    const difficulty = Math.min(1.5, 1 + (score / 2000))
-    enemyCrowd.spawn(difficulty, playerZ)
+    // Use wave-based enemy count
+    const enemyCount = ENEMY_COUNT_PER_WAVE[currentWave - 1]
+    enemyCrowd.spawnForWave(currentWave, playerZ, enemyCount)
     
     speed = speed * 0.3
     
@@ -551,37 +549,46 @@ function animate() {
           
           // Check for winner!
           if (newMyCount <= 0) {
-            battleState = 'ended'
-            finalResult = 'lose'
+            // Lost - game over
+            battleState = 'waveComplete' // Use same state to stop battle loop
+            gameOver = true
             
-            // Show WIN/LOSS 3D sprite
+            // Show LOSS 3D sprite
             if (!resultTextSprite) {
-              resultTextSprite = createTextSprite('LOSS', '#ff3131', 3)
+              resultTextSprite = createTextSprite('GAME OVER', '#ff3131', 3)
               resultTextSprite.position.set(0, 3, playerZ)
               scene.add(resultTextSprite)
             }
             
             battleStatusOverlay.innerHTML = `
               <div class="result lose" style="font-size: 36px;">💀 敗北!</div>
-              <div class="count enemy" style="font-size: 18px; margin-top: 8px;">敵人: ${newEnemyCount}</div>
+              <div class="count enemy" style="font-size: 18px; margin-top: 8px;">第 ${currentWave} 關</div>
               <div class="restart-hint">👆 Click / Tab 重新開始</div>
             `
           } else if (newEnemyCount <= 0) {
-            battleState = 'ended'
-            finalResult = 'win'
+            // Wave complete! Continue to next wave
+            battleState = 'waveComplete'
+            postWinTimer = 0
             
-            // Show WIN/LOSS 3D sprite
-            if (!resultTextSprite) {
-              resultTextSprite = createTextSprite('WIN', '#39ff14', 3)
-              resultTextSprite.position.set(0, 3, playerZ)
-              scene.add(resultTextSprite)
+            // Check if this was the last wave
+            if (currentWave >= MAX_WAVES) {
+              // Game complete!
+              gameCompleted = true
+              battleStatusOverlay.innerHTML = `
+                <div class="result win" style="font-size: 48px;">🏆 全部通关!</div>
+                <div class="count friend" style="font-size: 20px; margin-top: 8px;">最終存活: ${newMyCount} 人</div>
+                <div class="restart-hint">👆 Click / Tab 重新開始</div>
+              `
+            } else {
+              // Show wave complete, continue
+              const nextWave = currentWave + 1
+              const nextEnemyCount = ENEMY_COUNT_PER_WAVE[nextWave - 1]
+              battleStatusOverlay.innerHTML = `
+                <div class="result win" style="font-size: 32px;">🏆 第${currentWave}關完成!</div>
+                <div class="count friend" style="font-size: 18px; margin-top: 8px;">存活: ${newMyCount} 人</div>
+                <div style="font-size: 14px; color: #aaa; margin-top: 8px;">下一關: ${nextEnemyCount} 敵人...</div>
+              `
             }
-            
-            battleStatusOverlay.innerHTML = `
-              <div class="result win" style="font-size: 36px;">🏆 勝利!</div>
-              <div class="count friend" style="font-size: 18px; margin-top: 8px;">存活: ${newMyCount} 人</div>
-              <div class="restart-hint">👆 Click / Tab 重新開始</div>
-            `
           }
         }
         
@@ -590,10 +597,51 @@ function animate() {
           resultTextSprite.rotation.y += 0.02
         }
         break
+        
+      case 'waveComplete':
+        // Don't do normal battle logic, just wait
+        if (gameCompleted) {
+          // Game is done, wait for restart
+          break
+        }
+        
+        // Continue: after 3 seconds, start next wave
+        postWinTimer++
+        if (postWinTimer >= 180) { // 3 seconds at 60fps
+          const remainingCrowd = crowdManager.getRemainingCount()
+          currentWave++
+          
+          // Reset for next wave
+          inEndZone = false
+          endZoneTriggered = false
+          battleState = 'none'
+          speed = 0.28
+          
+          // Reset camera to normal
+          cameraTargetY = 5
+          cameraTargetZ = 10
+          cameraTransitioning = true
+          
+          // Clear result sprites
+          if (resultTextSprite) {
+            scene.remove(resultTextSprite)
+            resultTextSprite = null
+          }
+          
+          // Hide battle status, show HUD
+          battleStatusOverlay.style.display = 'none'
+          battleOverlay.style.display = 'none'
+          
+          // Continue with remaining crowd
+          // nextWaveDistance will be set based on wave
+          nextWaveDistance = distance + 900
+        }
+        break
     }
   }
   
   function applyGateEffect(currentCount: number, type: string, value: number): number {
+    const crowdMax = CROWD_MAX_PER_WAVE[currentWave - 1]
     let newCount = currentCount
     
     switch (type) {
@@ -608,7 +656,7 @@ function animate() {
         break
     }
     
-    return Math.max(0, Math.min(50, newCount))
+    return Math.max(0, Math.min(crowdMax, newCount))
   }
   
   if (speedRecoveryTimer > 0 && !inEndZone) {

@@ -26,11 +26,21 @@ export class EnemyCrowd {
   // Initialize enemy crowd with random count
   // If playerZ provided, spawn relative to player
   spawn(difficulty: number = 1, playerZ: number = 0) {
+    // Default to 32 for backwards compatibility
+    this.spawnWithCount(32, playerZ)
+  }
+  
+  // Spawn with specific enemy count (for wave system)
+  spawnForWave(wave: number, playerZ: number, enemyCount: number) {
+    this.spawnWithCount(enemyCount, playerZ)
+  }
+  
+  // Internal method to spawn with given count
+  private spawnWithCount(count: number, playerZ: number) {
     // Clear existing
     this.clear()
     
-    // Fixed enemy count: 32 for epic battles!
-    this.count = 32
+    this.count = count
     
     const geometry = new THREE.BoxGeometry(0.2, 0.2, 0.2)  // Slightly smaller than player crowd (0.25)
     
