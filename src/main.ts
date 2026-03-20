@@ -714,10 +714,11 @@ function animate() {
       cameraTransitioning = false
     }
   } else {
-    // Normal gameplay: camera stays at fixed position (z=12), just look at player
-    camera.position.z = 12  // FIXED z position!
+    // Normal gameplay: camera follows player in z direction
+    // Player moves in negative z, so camera should follow
+    camera.position.z = playerZ + 12  // FIXED offset behind player!
     camera.position.y = 5
-    camera.lookAt(0, 0, playerZ)  // Always look at player
+    camera.lookAt(0, 2, playerZ)  // Look slightly ahead of player
   }
   
   distance += speed
