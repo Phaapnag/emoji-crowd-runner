@@ -555,7 +555,7 @@ function animate() {
             
             // Show LOSS 3D sprite
             if (!resultTextSprite) {
-              resultTextSprite = createTextSprite('GAME OVER', '#ff3131', 3)
+              resultTextSprite = createTextSprite('LOSE', '#ff3131', 3)
               resultTextSprite.position.set(0, 3, playerZ)
               scene.add(resultTextSprite)
             }
@@ -709,28 +709,25 @@ function animate() {
   if (isInBattle) {
     // During battle: camera shows player + crowd + enemies
     const battleLookZ = playerZ - 7.5  // Where crowd and enemies meet
-    const targetZ = playerZ + cameraTargetZ
     const targetY = cameraTargetY
-    camera.position.z += (targetZ - camera.position.z) * cameraLerp
+    // Camera stays at fixed Z, only adjust Y
     camera.position.y += (targetY - camera.position.y) * cameraLerp
     camera.lookAt(0, 2, battleLookZ)
   } else if (cameraTransitioning) {
-    // Post-wave transition or normal: move camera to normal position
-    const targetZ = playerZ + 10
+    // Post-wave transition: move camera back to normal Y position
     const targetY = 5
-    camera.position.z += (targetZ - camera.position.z) * cameraLerp
     camera.position.y += (targetY - camera.position.y) * cameraLerp
     camera.lookAt(0, 0, playerZ)  // Look at player directly
     
     // Stop transitioning when close enough
-    if (Math.abs(camera.position.y - 5) < 0.1 && Math.abs(camera.position.z - (playerZ + 10)) < 0.5) {
+    if (Math.abs(camera.position.y - 5) < 0.1) {
       cameraTransitioning = false
     }
   } else {
-    // Normal gameplay
-    camera.position.z = playerZ + 10
+    // Normal gameplay: camera stays at fixed position (z=12), just look at player
+    camera.position.z = 12  // FIXED z position!
     camera.position.y = 5
-    camera.lookAt(0, 0, playerZ)
+    camera.lookAt(0, 0, playerZ)  // Always look at player
   }
   
   distance += speed
