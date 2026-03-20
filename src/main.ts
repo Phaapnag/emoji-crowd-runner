@@ -353,13 +353,17 @@ function animate() {
   }
   
   if (collision.hitPurple) {
-    // Purple obstacle: eliminate one crowd member
-    const currentCount = crowdManager.getRemainingCount()
-    if (currentCount > 0) {
-      crowdManager.rebuild(currentCount - 1)
-      uiManager.showPopup('💥 -1 人！', true)
-    }
-    scoreEl.style.color = '#ff0000'
+    // Purple obstacle: instant game over
+    gameOver = true
+    speed = 0
+    battleState = 'waveComplete' // Stop battle logic
+    battleStatusOverlay.innerHTML = `
+      <div class="result lose" style="font-size: 36px;">💀 敗北!</div>
+      <div class="count enemy" style="font-size: 18px; margin-top: 8px;">撞到障礙物</div>
+      <div class="restart-hint">👆 Click / Tab 重新開始</div>
+    `
+    battleStatusOverlay.style.display = 'block'
+    return
   }
   
   const gateCollision = gateSpawner.checkCollision(player.mesh)
