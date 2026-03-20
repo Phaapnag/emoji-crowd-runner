@@ -696,7 +696,8 @@ function animate() {
   if (camDebugEl) {
     camDebugEl.textContent = `Cam: x=${camera.position.x.toFixed(1)} y=${camera.position.y.toFixed(1)} z=${camera.position.z.toFixed(1)} | Wave:${currentWave} | State:${battleState}`
   }
-  debugOverlay.textContent = `PZ:${playerZ.toFixed(0)} | Dist:${Math.floor(distance)} | Speed:${speed.toFixed(2)}`
+  // debugOverlay is hidden, keep it that way
+  debugOverlay.textContent = `PZ:${playerZ.toFixed(0)}`
   
   // Camera - gradual transition to battle view (3 seconds = lerp 0.02)
   const cameraLerp = cameraTransitioning ? 0.02 : 1  // 3 seconds to transition
