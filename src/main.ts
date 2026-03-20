@@ -697,11 +697,12 @@ function animate() {
   const isInBattle = inEndZone && (battleState === 'slowing' || battleState === 'waiting' || battleState === 'charging')
   
   if (isInBattle) {
-    // During battle: camera shows player + crowd + enemies
-    const battleLookZ = playerZ - 7.5  // Where crowd and enemies meet
-    const targetY = cameraTargetY
-    // Camera stays at fixed Z, only adjust Y
-    camera.position.y += (targetY - camera.position.y) * cameraLerp
+    // During battle: camera follows player + shows crowd + enemies
+    // Camera MUST follow player in Z or everything goes behind camera
+    camera.position.z = playerZ + 12  // CRITICAL: follow player!
+    camera.position.y += (cameraTargetY - camera.position.y) * cameraLerp
+    // Look at where crowd and enemies meet (in front of player)
+    const battleLookZ = playerZ - 5  // Look slightly ahead of player
     camera.lookAt(0, 2, battleLookZ)
   } else if (cameraTransitioning) {
     // Post-wave transition: move camera back to normal Y position
