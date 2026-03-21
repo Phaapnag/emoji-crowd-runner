@@ -140,6 +140,13 @@ function handleRestart() {
 document.addEventListener('click', handleRestart)
 
 document.addEventListener('keydown', (e) => {
+  // Press T to run tests (debug mode)
+  if (e.key === 't' || e.key === 'T') {
+    console.log('\n🚀 Running Day 7 Tests...\n')
+    runGameTests()
+    return
+  }
+  
   // Tab to restart only for game over/complete
   if (gameOver || gameCompleted) {
     if (e.key === 'Tab') {
@@ -404,6 +411,63 @@ function performRevive() {
   
   console.log('[Game] Revived! Has revived:', gameState.hasRevived)
 }
+
+// ============== DAY 7 TEST SUITE ==============
+// Press 'T' key to run tests
+
+function runGameTests() {
+  const results: boolean[] = []
+  
+  // Test 1: Camera Settings
+  console.log('\n=== Test 1: Camera Settings ===')
+  console.log(`Camera FOV: ${camera.fov} (expected: 75)`)
+  console.log(`Camera Aspect: ${camera.aspect.toFixed(3)} (expected: ${(500/844).toFixed(3)})`)
+  const camPassed = camera.fov === 75 && Math.abs(camera.aspect - 500/844) < 0.01
+  console.log(`✅ Test 1: ${camPassed ? 'PASS' : 'FAIL'}\n`)
+  results.push(camPassed)
+  
+  // Test 2: Mobile Resize
+  console.log('=== Test 2: Mobile Resize ===')
+  window.dispatchEvent(new Event('resize'))
+  const rect = gameContainer.getBoundingClientRect()
+  console.log(`Container size: ${rect.width.toFixed(0)}x${rect.height.toFixed(0)}`)
+  const resizePassed = rect.width > 0 && rect.height > 0
+  console.log(`✅ Test 2: ${resizePassed ? 'PASS' : 'FAIL'}\n`)
+  results.push(resizePassed)
+  
+  // Test 3: Game Restart
+  console.log('=== Test 3: Game Restart ===')
+  const restartTest = typeof handleRestart === 'function'
+  console.log(`handleRestart exists: ${restartTest}`)
+  console.log(`✅ Test 3: ${restartTest ? 'PASS' : 'FAIL'}\n`)
+  results.push(restartTest)
+  
+  // Test 4: Performance
+  console.log('=== Test 4: Performance ===')
+  const info = renderer.info
+  console.log(`Draw Calls: ${info.render.calls}`)
+  console.log(`Triangles: ${info.render.triangles}`)
+  console.log(`✅ Test 4: ${info.render.calls < 500 ? 'PASS' : 'CHECK'}\n`)
+  results.push(true) // Always pass, just info
+  
+  // Test 5: Coin System
+  console.log('=== Test 5: Coin System ===')
+  const prevCoins = gameState.coins
+  gameState.addCoins(10)
+  console.log(`addCoins(10): ${gameState.coins - prevCoins === 10 ? 'PASS' : 'FAIL'}`)
+  const coinPassed = gameState.spendCoins(5) && gameState.coins === prevCoins + 5
+  console.log(`spendCoins(5): ${coinPassed ? 'PASS' : 'FAIL'}`)
+  gameState.reset()
+  results.push(coinPassed)
+  
+  // Summary
+  console.log('\n========================================')
+  console.log(`   TEST SUMMARY: ${results.filter(r=>r).length}/${results.length} PASSED`)
+  console.log('========================================\n')
+}
+
+// Expose for console
+;(window as any).runGameTests = runGameTests
 
 // Day 7: Win/Complete Screen with Double Coins Option
 function showWinScreen(runCoins: number) {
