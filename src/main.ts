@@ -760,11 +760,8 @@ function animate() {
               scene.add(resultTextSprite)
             }
             
-            battleStatusOverlay.innerHTML = `
-              <div class="result lose" style="font-size: 36px;">💀 敗北!</div>
-              <div class="count enemy" style="font-size: 18px; margin-top: 8px;">第 ${currentWave} 關</div>
-              <div class="restart-hint">👆 Click / Tab 重新開始</div>
-            `
+            // Day 7: Show game over screen with revive options
+            showGameOverScreen()
           } else if (newEnemyCount <= 0) {
             // Wave complete! Continue to next wave
             battleState = 'waveComplete'
