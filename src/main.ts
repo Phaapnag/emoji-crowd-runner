@@ -6,6 +6,7 @@ import { CrowdManager } from './CrowdManager'
 import { GateSpawner } from './GateSpawner'
 import { EnemyCrowd } from './EnemyCrowd'
 import { UIManager } from './UIManager'
+import { GameState } from './GameState'
 import './ui.css'
 
 // Scene setup
@@ -53,21 +54,22 @@ const crowdManager = new CrowdManager(scene)
 const gateSpawner = new GateSpawner(scene)
 const enemyCrowd = new EnemyCrowd(scene)
 
+// Day 7: GameState - Central state management
+const gameState = new GameState()
+
 // UIManager - Day 6: Right-top HUD + Status Popups
 const uiManager = new UIManager(scene, gameContainer)
 
 // Connect gate spawner to obstacle checker
 gateSpawner.setObstacleSpawner(levelSpawner)
 
-// Set initial references for UIManager (coins will be passed directly in update)
-// Use a mutable reference object
+// Set initial references for UIManager (coins from GameState)
 const gameStateRef = { coins: 0, score: 0, distance: 0 }
 uiManager.setReferences(crowdManager, player, gameStateRef)
 
-// Game state
+// Game state variables
 let score = 0
 let distance = 0
-let coins = 0
 let speed = 0.28
 let speedRecoveryTimer = 0
 let gameOver = false
@@ -301,6 +303,148 @@ function createTextSprite(text: string, color: string, size: number = 3): THREE.
   return mesh
 }
 
+// Day 7: Game Over Screen with Revive Options
+function showGameOverScreen() {
+  const canRevive = gameState.canReviveWithCoins()
+  const runCoins = gameState.runCoins
+  
+  let html = `
+    <div class="result lose" style="font-size: 32px;">💀 敗北!</div>
+    <div class="run-coins" style="margin: 12px 0; font-size: 18px;">今局: 🪙 ${runCoins}</div>
+  `
+  
+  // Revive button A: Use coins (if can afford)
+  if (canRevive) {
+    html += `
+      <button id="revive-coins-btn" class="reward-btn coins" style="
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        border: none;
+        padding: 12px 24px;
+        border-radius: 12px;
+        color: white;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        margin: 8px 0;
+        width: 80%;
+      ">🪙 用 ${gameState.REVIVE_COST} 金幣復活</button>
+    `
+  }
+  
+  // Revive button B: Free (will be Watch Ad in future)
+  html += `
+    <button id="revive-ad-btn" class="reward-btn ad" style="
+      background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+      border: none;
+      padding: 12px 24px;
+      border-radius: 12px;
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin: 8px 0;
+      width: 80%;
+    ">📺 免費復活</button>
+    <div class="restart-hint" style="margin-top: 16px; font-size: 12px; opacity: 0.7;">👆 Click 任意位置 / Tab 重新開始</div>
+  `
+  
+  battleStatusOverlay.innerHTML = html
+  battleStatusOverlay.style.display = 'block'
+  
+  // Button event listeners
+  const reviveCoinsBtn = document.getElementById('revive-coins-btn')
+  if (reviveCoinsBtn) {
+    reviveCoinsBtn.addEventListener('click', (e) => {
+      e.stopPropagation()
+      if (gameState.spendCoins(gameState.REVIVE_COST)) {
+        performRevive()
+      }
+    })
+  }
+  
+  const reviveAdBtn = document.getElementById('revive-ad-btn')
+  if (reviveAdBtn) {
+    reviveAdBtn.addEventListener('click', (e) => {
+      e.stopPropagation()
+      // TODO: Show Ad here, then call rewardedRevive()
+      gameState.rewardedRevive()
+      performRevive()
+    })
+  }
+}
+
+// Perform revive - reset player state
+function performRevive() {
+  gameOver = false
+  speed = 0.28
+  battleState = 'none'
+  inEndZone = false
+  endZoneTriggered = false
+  nextWaveDistance = distance + 900
+  
+  // Reset camera
+  cameraTargetY = 5
+  cameraTargetZ = 10
+  cameraTransitioning = true
+  
+  // Clear overrides
+  crowdManager.clearOverride()
+  gateSpawner.reset(player.mesh.position.z)
+  enemyCrowd.clear()
+  
+  // Reset battle overlays
+  battleStatusOverlay.style.display = 'none'
+  battleOverlay.style.display = 'none'
+  
+  // Remove result sprites
+  if (resultTextSprite) {
+    scene.remove(resultTextSprite)
+    resultTextSprite = null
+  }
+  
+  console.log('[Game] Revived! Has revived:', gameState.hasRevived)
+}
+
+// Day 7: Win/Complete Screen with Double Coins Option
+function showWinScreen(runCoins: number) {
+  const html = `
+    <div class="result win" style="font-size: 36px;">🏆 通關!</div>
+    <div class="run-coins" style="margin: 16px 0; font-size: 20px;">今局獲得: 🪙 ${runCoins}</div>
+    <button id="double-coins-btn" class="reward-btn" style="
+      background: linear-gradient(135deg, #10b981, #059669);
+      border: none;
+      padding: 14px 28px;
+      border-radius: 12px;
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin: 8px 0;
+      width: 80%;
+    ">📺 免費 x2 金幣</button>
+    <div class="restart-hint" style="margin-top: 16px; font-size: 12px; opacity: 0.7;">👆 Click / Tab 重新開始</div>
+  `
+  
+  battleStatusOverlay.innerHTML = html
+  battleStatusOverlay.style.display = 'block'
+  
+  // Button event listener
+  const doubleCoinsBtn = document.getElementById('double-coins-btn')
+  if (doubleCoinsBtn) {
+    doubleCoinsBtn.addEventListener('click', (e) => {
+      e.stopPropagation()
+      // TODO: Show Ad here, then call rewardedDoubleCoins()
+      gameState.rewardedDoubleCoins(runCoins)
+      // Show updated total
+      const totalDisplay = document.createElement('div')
+      totalDisplay.style.cssText = 'margin-top: 12px; font-size: 18px; color: #fbbf24;'
+      totalDisplay.textContent = `總金幣: 🪙 ${gameState.totalCoins}`
+      doubleCoinsBtn.parentNode?.appendChild(totalDisplay)
+      doubleCoinsBtn.style.display = 'none'
+    })
+  }
+}
+
 // Animation loop
 function animate() {
   requestAnimationFrame(animate)
@@ -330,7 +474,7 @@ function animate() {
   crowdManager.update(player.mesh.position.x, player.mesh.position.z, Date.now() * 0.001)
   
   // Day 6: Update UIManager HUD (hide during battle)
-  gameStateRef.coins = coins
+  gameStateRef.coins = gameState.coins
   gameStateRef.score = score
   gameStateRef.distance = distance
   uiManager.update(!inEndZone) // Hide HUD during battle
@@ -357,12 +501,7 @@ function animate() {
     gameOver = true
     speed = 0
     battleState = 'waveComplete' // Stop battle logic
-    battleStatusOverlay.innerHTML = `
-      <div class="result lose" style="font-size: 36px;">💀 敗北!</div>
-      <div class="count enemy" style="font-size: 18px; margin-top: 8px;">撞到障礙物</div>
-      <div class="restart-hint">👆 Click / Tab 重新開始</div>
-    `
-    battleStatusOverlay.style.display = 'block'
+    showGameOverScreen()
     return
   }
   
@@ -571,11 +710,8 @@ function animate() {
             if (currentWave >= MAX_WAVES) {
               // Game complete!
               gameCompleted = true
-              battleStatusOverlay.innerHTML = `
-                <div class="result win" style="font-size: 48px;">🏆 全部通关!</div>
-                <div class="count friend" style="font-size: 20px; margin-top: 8px;">最終存活: ${newMyCount} 人</div>
-                <div class="restart-hint">👆 Click / Tab 重新開始</div>
-              `
+              const runCoins = gameState.runCoins
+              showWinScreen(runCoins)
             } else {
               // Show wave complete, continue
               const nextWave = currentWave + 1
@@ -672,7 +808,9 @@ function animate() {
     }
   }
   
-  coins += collectedCoins
+  if (collectedCoins > 0) {
+    gameState.addCoins(collectedCoins)
+  }
    
   // Hide battle status when not in end zone
   if (!inEndZone) {
@@ -724,11 +862,11 @@ function animate() {
   }
   
   distance += speed
-  score = Math.floor(distance) + coins * 10
+  score = Math.floor(distance) + gameState.coins * 10
   
   const crowdCount = crowdManager.getRemainingCount()
   if (battleState === 'none') {
-    let debugInfo = `PZ${playerZ.toFixed(0)} 👥${crowdCount} 🛒${score} 🪙${coins}`
+    let debugInfo = `PZ${playerZ.toFixed(0)} 👥${crowdCount} 🛒${score} 🪙${gameState.coins}`
     scoreEl.textContent = debugInfo
   }
   
