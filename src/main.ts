@@ -147,6 +147,13 @@ document.addEventListener('keydown', (e) => {
     return
   }
   
+  // Press C to add coins (debug mode)
+  if ((e.key === 'c' || e.key === 'C') && !gameOver) {
+    gameState.addCoins(100)
+    console.log(`[DEBUG] Added 100 coins! Total: ${gameState.coins}`)
+    return
+  }
+  
   // Tab to restart only for game over/complete
   if (gameOver || gameCompleted) {
     if (e.key === 'Tab') {
