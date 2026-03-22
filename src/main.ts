@@ -318,13 +318,16 @@ function createTextSprite(text: string, color: string, size: number = 3): THREE.
 }
 
 // Day 7: Game Over Screen with Revive Options
+let freeReviveClickCount = 0
+
 function showGameOverScreen() {
   const canRevive = gameState.canReviveWithCoins()
   const runCoins = gameState.runCoins
+  freeReviveClickCount = 0 // Reset counter
   
   let html = `
     <div class="result lose" style="font-size: 32px;">💀 敗北!</div>
-    <div class="run-coins" style="margin: 12px 0; font-size: 18px;">今局: 🪙 ${runCoins}</div>
+    <div class="run-coins" style="margin: 12px 0; font-size: 18px;">今局: 🪙 ${runCoins} (你有: ${gameState.coins})</div>
   `
   
   // Revive button A: Use coins (if can afford)
@@ -359,6 +362,17 @@ function showGameOverScreen() {
       margin: 8px 0;
       width: 80%;
     ">📺 免費復活</button>
+    <div id="debug-add-coins" style="display: none; margin-top: 8px;">
+      <button id="debug-coins-btn" style="
+        background: #ef4444;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        color: white;
+        font-size: 12px;
+        cursor: pointer;
+      ">🔧 +100 金幣</button>
+    </div>
     <div class="restart-hint" style="margin-top: 16px; font-size: 12px; opacity: 0.7;">👆 Click 任意位置 / Tab 重新開始</div>
   `
   
@@ -380,9 +394,28 @@ function showGameOverScreen() {
   if (reviveAdBtn) {
     reviveAdBtn.addEventListener('click', (e) => {
       e.stopPropagation()
+      // Debug mode: click 5 times to show coin adder
+      freeReviveClickCount++
+      if (freeReviveClickCount >= 5) {
+        const debugDiv = document.getElementById('debug-add-coins')
+        if (debugDiv) debugDiv.style.display = 'block'
+      }
+      
       // TODO: Show Ad here, then call rewardedRevive()
       gameState.rewardedRevive()
       performRevive()
+    })
+  }
+  
+  // Debug button: add coins for testing
+  const debugCoinsBtn = document.getElementById('debug-coins-btn')
+  if (debugCoinsBtn) {
+    debugCoinsBtn.addEventListener('click', (e) => {
+      e.stopPropagation()
+      gameState.addCoins(100)
+      console.log(`[DEBUG] Added 100 coins! Total: ${gameState.coins}`)
+      // Refresh the game over screen to show coin revive button
+      showGameOverScreen()
     })
   }
 }
