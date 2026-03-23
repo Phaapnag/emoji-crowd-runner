@@ -24,7 +24,42 @@ const gameContainer = document.querySelector('.game-container') as HTMLElement
 const renderer = new THREE.WebGLRenderer({ antialias: true })
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 renderer.shadowMap.enabled = true
+renderer.setScissorTest(true) // Enable scissor for split screen effect
 gameContainer.appendChild(renderer.domElement)
+
+// Create black overlay for half-screen mode
+const blackOverlay = document.createElement('div')
+blackOverlay.id = 'black-overlay'
+blackOverlay.style.cssText = `
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: #000;
+  display: none;
+  z-index: 50;
+  pointer-events: none;
+`
+gameContainer.appendChild(blackOverlay)
+
+// Flag for half-screen mode (for revive/特殊情況)
+let halfScreenMode = false
+
+function setHalfScreenMode(enabled: boolean) {
+  halfScreenMode = enabled
+  blackOverlay.style.display = enabled ? 'block' : 'none'
+  
+  // Also adjust camera to show only top half
+  if (enabled) {
+    // Move camera up to show only top half of road
+    camera.position.y = 8
+    camera.position.z = 8
+  } else {
+    camera.position.y = 5
+    camera.position.z = 12
+  }
+}
 
 function resizeRenderer() {
   const rect = gameContainer.getBoundingClientRect()
@@ -420,23 +455,36 @@ function showGameOverScreen() {
   }
 }
 
-// Perform revive - reset player state
+// Perform revive - continue from where player died
 function performRevive() {
+  // Save current position before resetting
+  const currentZ = player.mesh.position.z
+  const currentX = player.mesh.position.x
+  const reviveDistance = distance
+  
   gameOver = false
   speed = 0.28
   battleState = 'none'
+  
+  // Keep wave progress - don't reset wave!
+  // inEndZone and endZoneTriggered will be recalculated based on current distance
   inEndZone = false
   endZoneTriggered = false
-  nextWaveDistance = distance + 900
+  nextWaveDistance = reviveDistance + 900
   
-  // Reset camera
+  console.log(`[Game] Revived at distance ${reviveDistance.toFixed(1)}, wave ${currentWave} continues`)
+  
+  // Enable half-screen mode (bottom half black)
+  setHalfScreenMode(true)
+  
+  // Reset camera (will adapt to half-screen mode in setHalfScreenMode)
   cameraTargetY = 5
   cameraTargetZ = 10
   cameraTransitioning = true
   
-  // Clear overrides
+  // Clear overrides but keep current position
   crowdManager.clearOverride()
-  gateSpawner.reset(player.mesh.position.z)
+  gateSpawner.reset(currentZ)
   enemyCrowd.clear()
   
   // Reset battle overlays
@@ -449,7 +497,7 @@ function performRevive() {
     resultTextSprite = null
   }
   
-  console.log('[Game] Revived! Has revived:', gameState.hasRevived)
+  console.log('[Game] Revived! Has revived:', gameState.hasRevived, 'at position', currentX, currentZ)
 }
 
 // ============== DAY 7 TEST SUITE ==============
@@ -561,7 +609,18 @@ function animate() {
       resultTextSprite.rotation.y += 0.02
     }
     
-    renderer.render(scene, camera)
+    // Render with scissor if in half-screen mode
+    if (halfScreenMode) {
+      const rect = gameContainer.getBoundingClientRect()
+      const width = rect.width
+      const height = rect.height
+      
+      renderer.setViewport(0, height / 2, width, height / 2)
+      renderer.setScissor(0, height / 2, width, height / 2)
+      renderer.render(scene, camera)
+    } else {
+      renderer.render(scene, camera)
+    }
     return
   }
   
@@ -971,7 +1030,19 @@ function animate() {
     scoreEl.textContent = debugInfo
   }
   
-  renderer.render(scene, camera)
+  // Render with scissor if in half-screen mode
+  if (halfScreenMode) {
+    const rect = gameContainer.getBoundingClientRect()
+    const width = rect.width
+    const height = rect.height
+    
+    // Render top half (normal view)
+    renderer.setViewport(0, height / 2, width, height / 2)
+    renderer.setScissor(0, height / 2, width, height / 2)
+    renderer.render(scene, camera)
+  } else {
+    renderer.render(scene, camera)
+  }
 }
 
 animate()
