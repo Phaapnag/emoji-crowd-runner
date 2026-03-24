@@ -35,10 +35,37 @@ export class GameState {
   private onLivesChange: ((lives: number) => void) | null = null
 
   constructor() {
+    // Defensive: Check if localStorage is available
+    this.ensureLocalStorageAvailable()
     // Load total coins from localStorage
     this.loadTotalCoins()
     // Day 7: Load wave progress
     this.loadWaveProgress()
+  }
+
+  // Check if localStorage is available
+  private ensureLocalStorageAvailable(): void {
+    try {
+      const test = '__localStorage_test__'
+      localStorage.setItem(test, test)
+      localStorage.removeItem(test)
+    } catch (e) {
+      console.warn('[GameState] localStorage not available, game will work without persistence')
+      // Mark as unavailable by setting a flag
+      this._totalCoins = 0
+    }
+  }
+
+  // Check if localStorage works
+  private get isLocalStorageAvailable(): boolean {
+    try {
+      const test = '__test__'
+      localStorage.setItem(test, test)
+      localStorage.removeItem(test)
+      return true
+    } catch (e) {
+      return false
+    }
   }
 
   // Day 7: Save wave progress
@@ -63,6 +90,7 @@ export class GameState {
   }
 
   private loadWaveProgress(): void {
+    if (!this.isLocalStorageAvailable) return
     try {
       const saved = localStorage.getItem('emojiRunner_waveProgress')
       if (saved) {
@@ -77,6 +105,7 @@ export class GameState {
   }
 
   private saveToLocalStorage(): void {
+    if (!this.isLocalStorageAvailable) return
     try {
       const data = {
         currentWave: this._currentWave,
@@ -91,6 +120,7 @@ export class GameState {
   }
 
   private removeFromLocalStorage(): void {
+    if (!this.isLocalStorageAvailable) return
     try {
       localStorage.removeItem('emojiRunner_waveProgress')
     } catch (e) {
@@ -198,6 +228,7 @@ export class GameState {
 
   // LocalStorage persistence
   private loadTotalCoins(): void {
+    if (!this.isLocalStorageAvailable) return
     try {
       const saved = localStorage.getItem('emojiRunner_totalCoins')
       if (saved) {
@@ -209,6 +240,7 @@ export class GameState {
   }
 
   private saveTotalCoins(): void {
+    if (!this.isLocalStorageAvailable) return
     try {
       localStorage.setItem('emojiRunner_totalCoins', String(this._totalCoins))
     } catch (e) {
