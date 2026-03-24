@@ -112,8 +112,19 @@ let gameWon = false
 let gameCompleted = false // After wave 8
 
 // Wave/Level system
-let currentWave = 1
+// Day 7: Load saved wave or start from 1
+let currentWave = gameState.hasSavedProgress() ? gameState.currentWave : 1
 const MAX_WAVES = 8
+
+// Day 7: Check for saved distance and set up continue
+const savedDistance = gameState.hasSavedProgress() ? gameState.savedDistance : 0
+const savedCrowdCount = gameState.hasSavedProgress() ? gameState.crowdCount : 50
+
+// If we have saved progress, use it to set initial distance
+if (savedDistance > 0) {
+  distance = savedDistance
+  console.log(`[Game] Continuing from wave ${currentWave}, distance ${distance.toFixed(1)}`)
+}
 
 // Enemy count per wave: 30, 40, 50, 60, 70, 80, 90, 100
 const ENEMY_COUNT_PER_WAVE = [30, 40, 50, 60, 70, 80, 90, 100]
@@ -902,6 +913,9 @@ function animate() {
         postWinTimer++
         if (postWinTimer >= 180) { // 3 seconds at 60fps
           currentWave++
+          
+          // Day 7: Save wave progress
+          gameState.saveWaveProgress(currentWave, distance, crowdManager.getRemainingCount())
           
           // Reset for next wave
           inEndZone = false

@@ -9,6 +9,9 @@ export interface GameStateData {
   hasRevived: boolean
   runCoins: number // Coins earned in current run
   totalCoins: number // All-time coins (stored in localStorage)
+  currentWave: number // Day 7: Current wave saved
+  savedDistance: number // Day 7: Distance saved for continue
+  crowdCount: number // Day 7: Crowd count saved for continue
 }
 
 export class GameState {
@@ -18,6 +21,10 @@ export class GameState {
   private _hasRevived: boolean = false
   private _runCoins: number = 0
   private _totalCoins: number = 0
+  // Day 7: Wave progress
+  private _currentWave: number = 1
+  private _savedDistance: number = 0
+  private _crowdCount: number = 50
 
   // Constants
   readonly REVIVE_COST = 50
@@ -30,6 +37,65 @@ export class GameState {
   constructor() {
     // Load total coins from localStorage
     this.loadTotalCoins()
+    // Day 7: Load wave progress
+    this.loadWaveProgress()
+  }
+
+  // Day 7: Save wave progress
+  saveWaveProgress(wave: number, distance: number, crowd: number): void {
+    this._currentWave = wave
+    this._savedDistance = distance
+    this._crowdCount = crowd
+    this.saveToLocalStorage()
+  }
+
+  // Day 7: Check if there's saved progress
+  hasSavedProgress(): boolean {
+    return this._savedDistance > 0
+  }
+
+  // Day 7: Clear saved progress (when starting new game)
+  clearSavedProgress(): void {
+    this._currentWave = 1
+    this._savedDistance = 0
+    this._crowdCount = 50
+    this.removeFromLocalStorage()
+  }
+
+  private loadWaveProgress(): void {
+    try {
+      const saved = localStorage.getItem('emojiRunner_waveProgress')
+      if (saved) {
+        const data = JSON.parse(saved)
+        this._currentWave = data.currentWave || 1
+        this._savedDistance = data.savedDistance || 0
+        this._crowdCount = data.crowdCount || 50
+      }
+    } catch (e) {
+      console.warn('[GameState] Could not load wave progress from localStorage')
+    }
+  }
+
+  private saveToLocalStorage(): void {
+    try {
+      const data = {
+        currentWave: this._currentWave,
+        savedDistance: this._savedDistance,
+        crowdCount: this._crowdCount,
+        totalCoins: this._totalCoins
+      }
+      localStorage.setItem('emojiRunner_waveProgress', JSON.stringify(data))
+    } catch (e) {
+      console.warn('[GameState] Could not save to localStorage')
+    }
+  }
+
+  private removeFromLocalStorage(): void {
+    try {
+      localStorage.removeItem('emojiRunner_waveProgress')
+    } catch (e) {
+      console.warn('[GameState] Could not remove from localStorage')
+    }
   }
 
   // Getters
@@ -38,6 +104,10 @@ export class GameState {
   get hasRevived(): boolean { return this._hasRevived }
   get runCoins(): number { return this._runCoins }
   get totalCoins(): number { return this._totalCoins }
+  // Day 7: Wave getters
+  get currentWave(): number { return this._currentWave }
+  get savedDistance(): number { return this._savedDistance }
+  get crowdCount(): number { return this._crowdCount }
 
   // Setters with callbacks
   set coins(value: number) {
@@ -109,13 +179,21 @@ export class GameState {
   }
 
   // Reset for new game
-  reset(): void {
+  reset(clearProgress: boolean = false): void {
     this._coins = 0
     this._lives = 1
     this._hasRevived = false
     this._runCoins = 0
     if (this.onCoinsChange) this.onCoinsChange(0)
     if (this.onLivesChange) this.onLivesChange(1)
+    
+    // Day 7: Clear wave progress if starting new game
+    if (clearProgress) {
+      this._currentWave = 1
+      this._savedDistance = 0
+      this._crowdCount = 50
+      this.removeFromLocalStorage()
+    }
   }
 
   // LocalStorage persistence
