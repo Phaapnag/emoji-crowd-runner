@@ -27,7 +27,9 @@ renderer.shadowMap.enabled = true
 renderer.setScissorTest(true) // Enable scissor for split screen effect
 gameContainer.appendChild(renderer.domElement)
 
+// DEBUG: Comment out black overlay for now - causing issues
 // Create black overlay for half-screen mode
+/*
 const blackOverlay = document.createElement('div')
 blackOverlay.id = 'black-overlay'
 blackOverlay.style.cssText = `
@@ -42,10 +44,12 @@ blackOverlay.style.cssText = `
   pointer-events: none;
 `
 gameContainer.appendChild(blackOverlay)
+*/
 
 // Flag for half-screen mode (for revive/特殊情況)
 let halfScreenMode = false
 
+/*
 function setHalfScreenMode(enabled: boolean) {
   halfScreenMode = enabled
   blackOverlay.style.display = enabled ? 'block' : 'none'
@@ -60,6 +64,7 @@ function setHalfScreenMode(enabled: boolean) {
     camera.position.z = 12
   }
 }
+*/
 
 function resizeRenderer() {
   const rect = gameContainer.getBoundingClientRect()
@@ -485,8 +490,8 @@ function performRevive() {
   
   console.log(`[Game] Revived at distance ${reviveDistance.toFixed(1)}, wave ${currentWave} continues`)
   
-  // Enable half-screen mode (bottom half black)
-  setHalfScreenMode(true)
+  // Enable half-screen mode (bottom half black) - DEBUG: disabled for now
+  // setHalfScreenMode(true)
   
   // Reset camera (will adapt to half-screen mode in setHalfScreenMode)
   cameraTargetY = 5
