@@ -24,7 +24,7 @@ const gameContainer = document.querySelector('.game-container') as HTMLElement
 const renderer = new THREE.WebGLRenderer({ antialias: true })
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 renderer.shadowMap.enabled = true
-renderer.setScissorTest(true) // Enable scissor for split screen effect
+renderer.setScissorTest(false) // Disable scissor - was causing issues
 gameContainer.appendChild(renderer.domElement)
 
 // DEBUG: Comment out black overlay for now - causing issues
