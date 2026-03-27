@@ -151,6 +151,11 @@ let battleTimer = 0
 let chargePosition = 0
 let finalResult: 'win' | 'lose' | null = null
 
+// Day 7 Fix: Track initial battle counts for tie handling
+let battleInitialMyCount = 0
+let battleInitialEnemyCount = 0
+let failedWave = 0 // Track which wave we failed in (for continue)
+
 // Post-win state for continuing
 let postWinTimer = 0
 
@@ -475,22 +480,46 @@ function showGameOverScreen() {
 
 // Perform revive - continue from where player died
 function performRevive() {
+  // Day 7 Fix: If failed in battle, restart from that wave's beginning
+  // Otherwise, continue from current position
+  let reviveDistance: number
+  let restartWave = currentWave
+  
+  if (failedWave > 0) {
+    // Battle failed - restart from the wave's beginning
+    // Each wave is 900 distance units
+    // Wave 1 starts at 900, Wave 2 at 1800, etc.
+    reviveDistance = failedWave * 900
+    restartWave = failedWave
+    console.log(`[Game] Battle failed! Restarting wave ${failedWave} from distance ${reviveDistance}`)
+    // Reset failedWave after using it
+    failedWave = 0
+  } else {
+    // Normal continue - from where died
+    reviveDistance = distance
+    console.log(`[Game] Revived at distance ${reviveDistance.toFixed(1)}, wave ${currentWave} continues`)
+  }
+  
   // Save current position before resetting
   const currentZ = player.mesh.position.z
   const currentX = player.mesh.position.x
-  const reviveDistance = distance
   
   gameOver = false
   speed = 0.28
   battleState = 'none'
   
-  // Keep wave progress - don't reset wave!
-  // inEndZone and endZoneTriggered will be recalculated based on current distance
+  // Day 7 Fix: Set to the wave's start distance
+  distance = reviveDistance
+  currentWave = restartWave
+  
+  // Reset wave triggers
   inEndZone = false
   endZoneTriggered = false
   nextWaveDistance = reviveDistance + 900
   
-  console.log(`[Game] Revived at distance ${reviveDistance.toFixed(1)}, wave ${currentWave} continues`)
+  // Day 7 Fix: Reset player position to wave start
+  player.mesh.position.z = 0  // Reset to road start
+  player.mesh.position.x = 0
   
   // Enable half-screen mode (bottom half black) - DEBUG: disabled for now
   // setHalfScreenMode(true)
@@ -500,9 +529,10 @@ function performRevive() {
   cameraTargetZ = 10
   cameraTransitioning = true
   
-  // Clear overrides but keep current position
+  // Clear overrides and reset to wave start
   crowdManager.clearOverride()
-  gateSpawner.reset(currentZ)
+  // Pass the new player position (0) to reset spawners
+  gateSpawner.reset(0)
   enemyCrowd.clear()
   
   // Reset battle overlays
@@ -708,6 +738,11 @@ function animate() {
     battleState = 'slowing'
     battleTimer = 0
     
+    // Day 7 Fix: Record initial battle counts for tie handling
+    battleInitialMyCount = crowdManager.getRemainingCount()
+    battleInitialEnemyCount = ENEMY_COUNT_PER_WAVE[currentWave - 1]
+    console.log(`[Battle] Wave ${currentWave}: My ${battleInitialMyCount} vs Enemy ${battleInitialEnemyCount}`)
+    
     // Day 6: Show battle warning popup
     uiManager.showBattleWarning()
     
@@ -865,10 +900,14 @@ function animate() {
           scoreEl.textContent = `⚔️ 決戰! 👥${newMyCount} vs 💀${newEnemyCount}`
           
           // Check for winner!
-          if (newMyCount <= 0) {
-            // Lost - game over
+          // Day 7 Fix: If initial counts were equal and enemy reaches 0, it's a win
+          const isTieStart = battleInitialMyCount === battleInitialEnemyCount
+          
+          if (newMyCount <= 0 && !isTieStart) {
+            // Lost - game over (only if not a tie start)
             battleState = 'waveComplete' // Use same state to stop battle loop
             gameOver = true
+            failedWave = currentWave // Day 7 Fix: Track which wave we failed
             
             // Show LOSS 3D sprite
             if (!resultTextSprite) {
@@ -879,7 +918,8 @@ function animate() {
             
             // Day 7: Show game over screen with revive options
             showGameOverScreen()
-          } else if (newEnemyCount <= 0) {
+          } else if (newEnemyCount <= 0 || isTieStart) {
+            // Day 7 Fix: If tie start (equal counts) OR enemy reaches 0, it's a win
             // Wave complete! Continue to next wave
             battleState = 'waveComplete'
             postWinTimer = 0
