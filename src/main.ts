@@ -1,6 +1,7 @@
-import * as THREE from 'three'
 // Gate tuning test - testing preview build
-console.log('[GateTuning] Preview build test')
+console.log('[GateTuning] Preview build test v16-DebugKeys')
+
+import * as THREE from 'three'
 import { Player } from './Player'
 import { RoadSpawner } from './RoadSpawner'
 import { LevelSpawner } from './LevelSpawner'
@@ -99,6 +100,14 @@ const enemyCrowd = new EnemyCrowd(scene)
 // Day 7: GameState - Central state management
 const gameState = new GameState()
 
+// DEBUG: Log gameState to see what's being loaded
+console.log('[DEBUG] gameState after init:', {
+  hasSavedProgress: gameState.hasSavedProgress(),
+  currentWave: gameState.currentWave,
+  savedDistance: gameState.savedDistance,
+  crowdCount: gameState.crowdCount
+})
+
 // UIManager - Day 6: Right-top HUD + Status Popups
 const uiManager = new UIManager(scene, gameContainer)
 
@@ -117,6 +126,16 @@ let speedRecoveryTimer = 0
 let gameOver = false
 let gameWon = false
 let gameCompleted = false // After wave 8
+
+// DEBUG: Force reset game state to ensure fresh start
+console.log('[DEBUG] gameOver initial:', gameOver)
+console.log('[DEBUG] gameCompleted initial:', gameCompleted)
+
+// Force set gameOver to false to prevent stale state
+gameOver = false
+gameWon = false
+gameCompleted = false
+console.log('[DEBUG] After force reset, gameOver:', gameOver)
 
 // Wave/Level system
 // Day 7: Load saved wave or start from 1
