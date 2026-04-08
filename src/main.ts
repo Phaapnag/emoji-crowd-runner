@@ -480,19 +480,36 @@ function showGameOverScreen() {
 
 // Perform revive - continue from where player died
 function performRevive() {
-  // Day 7 Fix: If failed in battle, restart from that wave's beginning
-  // Otherwise, continue from current position
+  // Calculate wave start distance
+  const WAVE_DISTANCE = 900
+  const waveStartDistance = (currentWave - 1) * WAVE_DISTANCE
+  const distanceInCurrentWave = distance - waveStartDistance
+  
+  // Determine revive logic:
+  // 1. If at BOSS wave (wave 8), always restart from wave start (can't fight boss with no crowd)
+  // 2. If distance > 50% of wave (450 units), restart from wave start
+  // 3. Otherwise, continue from current position
+  
   let reviveDistance: number
   let restartWave = currentWave
   
-  if (failedWave > 0) {
-    // Battle failed - restart from the wave's beginning
-    // Each wave is 900 distance units
-    // Wave 1 starts at 900, Wave 2 at 1800, etc.
-    reviveDistance = failedWave * 900
+  // Boss wave check
+  const BOSS_WAVE = 8
+  const isBossWave = currentWave >= BOSS_WAVE
+  
+  // Distance > 50% check
+  const isMoreThanHalfWay = distanceInCurrentWave > (WAVE_DISTANCE / 2)
+  
+  if (isBossWave || isMoreThanHalfWay) {
+    // Restart from wave beginning
+    reviveDistance = waveStartDistance
+    restartWave = currentWave
+    console.log(`[Game] Revive: ${isBossWave ? 'BOSS wave' : 'Distance > 50%'}, restarting wave ${currentWave} from ${reviveDistance}`)
+  } else if (failedWave > 0) {
+    // Battle failed - restart from that wave's beginning
+    reviveDistance = failedWave * WAVE_DISTANCE
     restartWave = failedWave
     console.log(`[Game] Battle failed! Restarting wave ${failedWave} from distance ${reviveDistance}`)
-    // Reset failedWave after using it
     failedWave = 0
   } else {
     // Normal continue - from where died
@@ -508,16 +525,16 @@ function performRevive() {
   speed = 0.28
   battleState = 'none'
   
-  // Day 7 Fix: Set to the wave's start distance
+  // Set to the wave's start distance
   distance = reviveDistance
   currentWave = restartWave
   
   // Reset wave triggers
   inEndZone = false
   endZoneTriggered = false
-  nextWaveDistance = reviveDistance + 900
+  nextWaveDistance = reviveDistance + WAVE_DISTANCE
   
-  // Day 7 Fix: Reset player position to wave start
+  // Reset player position to wave start
   player.mesh.position.z = 0  // Reset to road start
   player.mesh.position.x = 0
   
@@ -543,6 +560,14 @@ function performRevive() {
   if (resultTextSprite) {
     scene.remove(resultTextSprite)
     resultTextSprite = null
+  }
+  
+  // Ensure minimum crowd when reviving
+  const currentCrowd = crowdManager.getRemainingCount()
+  if (currentCrowd === 0) {
+    // At least give 1 crowd member to avoid halt
+    crowdManager.rebuild(1)
+    console.log('[Game] Revive: Granted 1 crowd member to prevent halt')
   }
   
   console.log('[Game] Revived! Has revived:', gameState.hasRevived, 'at position', currentX, currentZ)
