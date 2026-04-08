@@ -217,6 +217,9 @@ function handleRestart() {
 document.addEventListener('click', handleRestart)
 
 document.addEventListener('keydown', (e) => {
+  // DEBUG: Log all key presses
+  console.log('[DEBUG] Key pressed:', e.key)
+  
   // Press T to run tests (debug mode)
   if (e.key === 't' || e.key === 'T') {
     console.log('\n🚀 Running Day 7 Tests...\n')
