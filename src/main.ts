@@ -212,6 +212,33 @@ document.addEventListener('keydown', (e) => {
     return
   }
   
+  // Press 1-8 to jump to that wave (debug mode)
+  const waveNum = parseInt(e.key)
+  if (waveNum >= 1 && waveNum <= 8 && !gameOver && !inEndZone) {
+    const WAVE_DISTANCE = 900
+    const targetDistance = (waveNum - 1) * WAVE_DISTANCE
+    distance = targetDistance
+    currentWave = waveNum
+    nextWaveDistance = targetDistance + WAVE_DISTANCE
+    crowdManager.rebuild(5) // Give 5 crowd for testing
+    console.log(`[DEBUG] Jumped to Wave ${waveNum}! Distance: ${distance}`)
+    return
+  }
+  
+  // Press 0 to set crowd to 0 (for testing revive bug)
+  if (e.key === '0' && !gameOver) {
+    crowdManager.rebuild(0)
+    console.log(`[DEBUG] Set crowd to 0!`)
+    return
+  }
+  
+  // Press 9 to set crowd to 1 (minimum to prevent halt)
+  if (e.key === '9' && !gameOver) {
+    crowdManager.rebuild(1)
+    console.log(`[DEBUG] Set crowd to 1!`)
+    return
+  }
+  
   // Tab to restart only for game over/complete
   if (gameOver || gameCompleted) {
     if (e.key === 'Tab') {
