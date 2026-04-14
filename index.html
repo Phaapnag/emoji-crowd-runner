@@ -201,6 +201,28 @@
         font-family: 'Quicksand', sans-serif;
       }
       
+      /* Home Button */
+      #homeBtn {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        background: rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-family: 'Quicksand', sans-serif;
+        cursor: pointer;
+        z-index: 150;
+        transition: all 0.2s;
+      }
+      
+      #homeBtn:hover {
+        background: rgba(255, 45, 149, 0.3);
+        border-color: #ff2d95;
+      }
+      
       /* Debug Overlay - Visible for debug */
       #debugOverlay {
         display: block;
@@ -291,12 +313,13 @@
   </head>
   <body>
     <div class="game-container">
+      <button id="homeBtn">🏠</button>
       <div id="score">🛒 0</div>
       <div id="battleOverlay"></div>
       <div id="battleStatusOverlay"></div>
       <div id="debugOverlay"></div>
       <div id="cam-debug" class="cam-debug"></div>
-      <script type="module" src="/src/main.ts?v=17-TestKeys"></script>
+      <script type="module" src="/src/main.ts?v=18-bugfix"></script>
     </div>
   </body>
 </html>

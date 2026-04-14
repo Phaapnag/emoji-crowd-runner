@@ -221,7 +221,22 @@ function handleRestart() {
   }
 }
 
+// Home button handler - return to home screen
+function handleHome() {
+  // Clear saved progress and reload
+  gameState.clearSavedProgress()
+  location.reload()
+}
+
 document.addEventListener('click', handleRestart)
+
+// Home button click handler (event delegation)
+document.addEventListener('click', (e) => {
+  const target = e.target as HTMLElement
+  if (target.id === 'homeBtn') {
+    handleHome()
+  }
+})
 
 document.addEventListener('keydown', (e) => {
   // DEBUG: Log all key presses
@@ -814,6 +829,19 @@ function animate() {
   }
   
   const playerZ = player.mesh.position.z
+  
+  // Block entry to battle if crowd = 0
+  const triggerDistance = nextWaveDistance > 0 ? nextWaveDistance : END_ZONE_DISTANCE
+  const currentCrowd = crowdManager.getRemainingCount()
+  if (!endZoneTriggered && distance >= triggerDistance - 50 && currentCrowd === 0 && currentWave < MAX_WAVES) {
+    // Can't enter battle with 0 crowd - restart from wave start
+    console.log('[Game] Blocked battle entry: crowd = 0, restarting wave')
+    distance = (currentWave - 1) * 900
+    nextWaveDistance = currentWave * 900
+    // Give minimum crowd to continue
+    crowdManager.rebuild(5)
+    uiManager.showGatePopup('add', 5)
+  }
   
   // Trigger end zone
   const triggerDistance = nextWaveDistance > 0 ? nextWaveDistance : END_ZONE_DISTANCE
