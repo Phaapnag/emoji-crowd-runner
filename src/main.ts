@@ -1,3 +1,6 @@
+// Gate tuning test - testing preview build
+console.log('[GateTuning] Preview build test v16-DebugKeys')
+
 import * as THREE from 'three'
 // Gate tuning test - testing preview build
 console.log('[GateTuning] Preview build test')
@@ -99,6 +102,14 @@ const enemyCrowd = new EnemyCrowd(scene)
 // Day 7: GameState - Central state management
 const gameState = new GameState()
 
+// DEBUG: Log gameState to see what's being loaded
+console.log('[DEBUG] gameState after init:', {
+  hasSavedProgress: gameState.hasSavedProgress(),
+  currentWave: gameState.currentWave,
+  savedDistance: gameState.savedDistance,
+  crowdCount: gameState.crowdCount
+})
+
 // UIManager - Day 6: Right-top HUD + Status Popups
 const uiManager = new UIManager(scene, gameContainer)
 
@@ -117,6 +128,16 @@ let speedRecoveryTimer = 0
 let gameOver = false
 let gameWon = false
 let gameCompleted = false // After wave 8
+
+// DEBUG: Force reset game state to ensure fresh start
+console.log('[DEBUG] gameOver initial:', gameOver)
+console.log('[DEBUG] gameCompleted initial:', gameCompleted)
+
+// Force set gameOver to false to prevent stale state
+gameOver = false
+gameWon = false
+gameCompleted = false
+console.log('[DEBUG] After force reset, gameOver:', gameOver)
 
 // Wave/Level system
 // Day 7: Load saved wave or start from 1
@@ -198,6 +219,9 @@ function handleRestart() {
 document.addEventListener('click', handleRestart)
 
 document.addEventListener('keydown', (e) => {
+  // DEBUG: Log all key presses
+  console.log('[DEBUG] Key pressed:', e.key)
+  
   // Press T to run tests (debug mode)
   if (e.key === 't' || e.key === 'T') {
     console.log('\n🚀 Running Day 7 Tests...\n')
@@ -209,6 +233,33 @@ document.addEventListener('keydown', (e) => {
   if ((e.key === 'c' || e.key === 'C') && !gameOver) {
     gameState.addCoins(100)
     console.log(`[DEBUG] Added 100 coins! Total: ${gameState.coins}`)
+    return
+  }
+  
+  // Press 1-8 to jump to that wave (debug mode)
+  const waveNum = parseInt(e.key)
+  if (waveNum >= 1 && waveNum <= 8 && !gameOver && !inEndZone) {
+    const WAVE_DISTANCE = 900
+    const targetDistance = (waveNum - 1) * WAVE_DISTANCE
+    distance = targetDistance
+    currentWave = waveNum
+    nextWaveDistance = targetDistance + WAVE_DISTANCE
+    crowdManager.rebuild(5) // Give 5 crowd for testing
+    console.log(`[DEBUG] Jumped to Wave ${waveNum}! Distance: ${distance}`)
+    return
+  }
+  
+  // Press 0 to set crowd to 0 (for testing revive bug)
+  if (e.key === '0' && !gameOver) {
+    crowdManager.rebuild(0)
+    console.log(`[DEBUG] Set crowd to 0!`)
+    return
+  }
+  
+  // Press 9 to set crowd to 1 (minimum to prevent halt)
+  if (e.key === '9' && !gameOver) {
+    crowdManager.rebuild(1)
+    console.log(`[DEBUG] Set crowd to 1!`)
     return
   }
   
@@ -480,19 +531,36 @@ function showGameOverScreen() {
 
 // Perform revive - continue from where player died
 function performRevive() {
-  // Day 7 Fix: If failed in battle, restart from that wave's beginning
-  // Otherwise, continue from current position
+  // Calculate wave start distance
+  const WAVE_DISTANCE = 900
+  const waveStartDistance = (currentWave - 1) * WAVE_DISTANCE
+  const distanceInCurrentWave = distance - waveStartDistance
+  
+  // Determine revive logic:
+  // 1. If at BOSS wave (wave 8), always restart from wave start (can't fight boss with no crowd)
+  // 2. If distance > 50% of wave (450 units), restart from wave start
+  // 3. Otherwise, continue from current position
+  
   let reviveDistance: number
   let restartWave = currentWave
   
-  if (failedWave > 0) {
-    // Battle failed - restart from the wave's beginning
-    // Each wave is 900 distance units
-    // Wave 1 starts at 900, Wave 2 at 1800, etc.
-    reviveDistance = failedWave * 900
+  // Boss wave check
+  const BOSS_WAVE = 8
+  const isBossWave = currentWave >= BOSS_WAVE
+  
+  // Distance > 50% check
+  const isMoreThanHalfWay = distanceInCurrentWave > (WAVE_DISTANCE / 2)
+  
+  if (isBossWave || isMoreThanHalfWay) {
+    // Restart from wave beginning
+    reviveDistance = waveStartDistance
+    restartWave = currentWave
+    console.log(`[Game] Revive: ${isBossWave ? 'BOSS wave' : 'Distance > 50%'}, restarting wave ${currentWave} from ${reviveDistance}`)
+  } else if (failedWave > 0) {
+    // Battle failed - restart from that wave's beginning
+    reviveDistance = failedWave * WAVE_DISTANCE
     restartWave = failedWave
     console.log(`[Game] Battle failed! Restarting wave ${failedWave} from distance ${reviveDistance}`)
-    // Reset failedWave after using it
     failedWave = 0
   } else {
     // Normal continue - from where died
@@ -508,16 +576,16 @@ function performRevive() {
   speed = 0.28
   battleState = 'none'
   
-  // Day 7 Fix: Set to the wave's start distance
+  // Set to the wave's start distance
   distance = reviveDistance
   currentWave = restartWave
   
   // Reset wave triggers
   inEndZone = false
   endZoneTriggered = false
-  nextWaveDistance = reviveDistance + 900
+  nextWaveDistance = reviveDistance + WAVE_DISTANCE
   
-  // Day 7 Fix: Reset player position to wave start
+  // Reset player position to wave start
   player.mesh.position.z = 0  // Reset to road start
   player.mesh.position.x = 0
   
@@ -543,6 +611,14 @@ function performRevive() {
   if (resultTextSprite) {
     scene.remove(resultTextSprite)
     resultTextSprite = null
+  }
+  
+  // Ensure minimum crowd when reviving
+  const currentCrowd = crowdManager.getRemainingCount()
+  if (currentCrowd === 0) {
+    // At least give 1 crowd member to avoid halt
+    crowdManager.rebuild(1)
+    console.log('[Game] Revive: Granted 1 crowd member to prevent halt')
   }
   
   console.log('[Game] Revived! Has revived:', gameState.hasRevived, 'at position', currentX, currentZ)
