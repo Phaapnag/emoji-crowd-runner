@@ -189,6 +189,11 @@ let cameraTargetY = 5
 let cameraTargetZ = 10  // Initial offset from player (smaller = zoom in)
 let cameraTransitioning = false
 
+// Day 8: Screen Shake
+let screenShakeIntensity = 0
+let screenShakeDuration = 0
+let screenShakeStartTime = 0
+
 // UI elements
 // Day 6: Hide original score (now in HUD)
 const scoreEl = document.getElementById('score')!
@@ -781,6 +786,10 @@ function animate() {
     speed = 0.1
     speedRecoveryTimer = 60
     scoreEl.style.color = '#ff6b6b'
+    // Day 8: Screen shake on obstacle hit (0.1 units, 0.3s)
+    screenShakeIntensity = 0.1
+    screenShakeDuration = 18  // ~0.3s at 60fps
+    screenShakeStartTime = 0
   }
   
   if (collision.hitPurple) {
@@ -958,6 +967,11 @@ function animate() {
           crowdManager.rebuild(Math.max(0, myCount - 1))
           enemyCrowd.eliminateOne()
           
+          // Day 8: Screen shake on battle clash (0.3 units, 0.6s)
+          screenShakeIntensity = 0.3
+          screenShakeDuration = 36  // ~0.6s at 60fps
+          screenShakeStartTime = 0
+          
           const newMyCount = crowdManager.getRemainingCount()
           const newEnemyCount = enemyCrowd.getCount()
           
@@ -1127,6 +1141,15 @@ function animate() {
   // Camera - gradual transition to battle view (3 seconds = lerp 0.02)
   const cameraLerp = cameraTransitioning ? 0.02 : 1  // 3 seconds to transition
   camera.position.x = 0
+  
+  // Day 8: Apply screen shake if active
+  if (screenShakeDuration > 0) {
+    screenShakeDuration--
+    const shakeX = (Math.random() - 0.5) * screenShakeIntensity * 2
+    const shakeY = (Math.random() - 0.5) * screenShakeIntensity * 2
+    camera.position.x = shakeX
+    camera.position.y = camera.position.y + shakeY
+  }
   
   // Determine camera mode based on battle state
   const isInBattle = inEndZone && (battleState === 'slowing' || battleState === 'waiting' || battleState === 'charging')
