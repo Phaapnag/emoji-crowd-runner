@@ -2,6 +2,8 @@
 console.log('[GateTuning] Preview build test v16-DebugKeys')
 
 import * as THREE from 'three'
+// Gate tuning test - testing preview build
+console.log('[GateTuning] Preview build test')
 import { Player } from './Player'
 import { RoadSpawner } from './RoadSpawner'
 import { LevelSpawner } from './LevelSpawner'
