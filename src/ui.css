@@ -1,9 +1,32 @@
 /* ============================================
-   UIManager Styles - Top-center Horizontal HUD
-   Day 6: Single horizontal bar at top
+   UIManager Styles - PlayStation Design System
+   Emoji Crowd Runner - PlayStation Inspired
    ============================================ */
 
-/* Top-center HUD - Horizontal layout */
+/* === PlayStation Design System Variables === */
+:root {
+  --ps-cyan: #00f0ff;
+  --ps-pink: #ff2d95;
+  --ps-yellow: #ffff00;
+  --ps-purple: #b44fff;
+  --ps-black: #000000;
+  --ps-dark-surface: #1a1a1a;
+  --ps-text-primary: #ffffff;
+  --ps-text-muted: #a0a0a0;
+}
+
+/* === Base Reset & Typography === */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Quicksand', sans-serif;
+  background: var(--ps-black);
+  color: var(--ps-text-primary);
+}
+
+/* === Top-center HUD - Horizontal layout (PlayStation Style) === */
 .hud-top {
   position: absolute;
   top: 10px;
@@ -11,8 +34,8 @@
   transform: translateX(-50%);
   opacity: 0.9;
   font-family: 'Quicksand', sans-serif;
-  color: #00f0ff; /* Neon Cyan */
-  text-shadow: 0 0 5px #00f0ff;
+  color: var(--ps-cyan);
+  text-shadow: 0 0 5px var(--ps-cyan);
   font-size: 14px;
   background: rgba(0, 0, 0, 0.4);
   padding: 8px 16px;
@@ -24,6 +47,12 @@
   align-items: center;
   gap: 8px;
   white-space: nowrap;
+  /* PlayStation: subtle hover-glow on parent (if interactive) */
+  transition: box-shadow 0.2s ease;
+}
+
+.hud-top:hover {
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
 }
 
 .hud-top .hud-item {
@@ -34,6 +63,7 @@
 
 .hud-top .hud-icon {
   font-size: 14px;
+  filter: drop-shadow(0 0 3px var(--ps-cyan));
 }
 
 .hud-top .hud-sep {
@@ -41,7 +71,7 @@
   font-size: 12px;
 }
 
-/* Center Status Popup - 80% transparent, Neon Pink */
+/* === Center Status Popup - Neon Pink (PlayStation Style) === */
 /* Positioned at 40% from top to avoid overlapping with top HUD */
 .status-popup {
   position: absolute;
@@ -50,9 +80,9 @@
   transform: translate(-50%, -50%);
   opacity: 0;
   font-family: 'Caveat', cursive;
-  color: #ff2d95; /* Neon Pink */
+  color: var(--ps-pink);
   font-size: 28px;
-  text-shadow: 0 0 10px #ff2d95, 0 0 20px rgba(255, 45, 149, 0.5);
+  text-shadow: 0 0 10px var(--ps-pink), 0 0 20px rgba(255, 45, 149, 0.5);
   background: rgba(0, 0, 0, 0.4);
   padding: 12px 24px;
   border-radius: 12px;
@@ -60,9 +90,12 @@
   z-index: 95;
   pointer-events: none;
   white-space: nowrap;
+  /* PlayStation: backdrop blur for premium feel */
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
-/* Fade In/Out Animation - 2s duration */
+/* Fade In/Out Animation - 2s duration (PlayStation Timing) */
 @keyframes fadeInOut {
   0% {
     opacity: 0;
@@ -107,19 +140,129 @@
 
 /* Optional: Different colors for different popup types */
 .status-popup.gate {
-  color: #ffff00; /* Yellow for gates */
-  text-shadow: 0 0 10px #ffff00, 0 0 20px rgba(255, 255, 0, 0.5);
+  color: var(--ps-yellow); /* Yellow for gates */
+  text-shadow: 0 0 10px var(--ps-yellow), 0 0 20px rgba(255, 255, 0, 0.5);
   border-color: rgba(255, 255, 0, 0.3);
 }
 
 .status-popup.battle {
-  color: #ff2d95; /* Pink for battle */
-  text-shadow: 0 0 10px #ff2d95, 0 0 20px rgba(255, 45, 149, 0.5);
+  color: var(--ps-pink); /* Pink for battle */
+  text-shadow: 0 0 10px var(--ps-pink), 0 0 20px rgba(255, 45, 149, 0.5);
   border-color: rgba(255, 45, 149, 0.3);
 }
 
 .status-popup.crowd {
-  color: #00f0ff; /* Cyan for crowd changes */
-  text-shadow: 0 0 10px #00f0ff, 0 0 20px rgba(0, 240, 255, 0.5);
+  color: var(--ps-cyan); /* Cyan for crowd changes */
+  text-shadow: 0 0 10px var(--ps-cyan), 0 0 20px rgba(0, 240, 255, 0.5);
   border-color: rgba(0, 240, 255, 0.3);
+}
+
+/* === PlayStation Buttons (if needed in future) === */
+.ps-button {
+  background: var(--ps-dark-surface);
+  color: var(--ps-cyan);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-family: 'Quicksand', sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-shadow: 0 0 5px var(--ps-cyan);
+}
+
+.ps-button:hover {
+  transform: scale(1.05); /* PlayStation hover-scale */
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+  background: rgba(0, 240, 255, 0.1);
+}
+
+.ps-button:active {
+  transform: scale(0.98);
+}
+
+/* === PlayStation Panels/Cards === */
+.ps-panel {
+  background: var(--ps-dark-surface);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  border-radius: 12px;
+  padding: 12px 24px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* === Depth & Elevation (PlayStation Shadow System) === */
+.ps-surface {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.ps-hover {
+  box-shadow: 0 0 5px currentColor;
+}
+
+.ps-popup {
+  box-shadow: 0 0 10px currentColor, 0 0 20px rgba(255, 45, 149, 0.5);
+}
+
+.ps-glow {
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
+}
+
+/* === Responsive: Touch Targets (min 44x44px) === */
+@media (max-width: 768px) {
+  .hud-top {
+    font-size: 12px;
+    padding: 6px 12px;
+    gap: 6px;
+  }
+  
+  .status-popup {
+    font-size: 24px;
+    padding: 10px 20px;
+  }
+}
+
+/* === Loading Screen (PlayStation Inspired) === */
+.loading-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: var(--ps-cyan);
+  font-family: 'Geist', sans-serif;
+  letter-spacing: 0.12em;
+}
+
+.loading-screen h1 {
+  font-size: 32px;
+  text-shadow: 0 0 10px var(--ps-cyan);
+  margin-bottom: 16px;
+}
+
+.loading-bar {
+  width: 200px;
+  height: 4px;
+  background: rgba(0, 240, 255, 0.2);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.loading-bar-fill {
+  height: 100%;
+  background: var(--ps-cyan);
+  box-shadow: 0 0 10px var(--ps-cyan);
+  animation: load 2s ease-in-out infinite;
+}
+
+@keyframes load {
+  0% { width: 0%; }
+  50% { width: 70%; }
+  100% { width: 100%; }
 }
