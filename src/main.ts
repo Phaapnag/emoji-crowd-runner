@@ -831,7 +831,7 @@ function animate() {
   const playerZ = player.mesh.position.z
   
   // Block entry to battle if crowd = 0
-  const triggerDistance = nextWaveDistance > 0 ? nextWaveDistance : END_ZONE_DISTANCE
+  let triggerDistance = nextWaveDistance > 0 ? nextWaveDistance : END_ZONE_DISTANCE
   const currentCrowd = crowdManager.getRemainingCount()
   if (!endZoneTriggered && distance >= triggerDistance - 50 && currentCrowd === 0 && currentWave < MAX_WAVES) {
     // Can't enter battle with 0 crowd - restart from wave start
@@ -844,7 +844,7 @@ function animate() {
   }
   
   // Trigger end zone
-  const triggerDistance = nextWaveDistance > 0 ? nextWaveDistance : END_ZONE_DISTANCE
+  triggerDistance = nextWaveDistance > 0 ? nextWaveDistance : END_ZONE_DISTANCE
   if (!endZoneTriggered && distance >= triggerDistance) {
     endZoneTriggered = true
     inEndZone = true
