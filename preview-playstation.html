@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Emoji Crowd Runner - PlayStation Style Preview</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&family=Caveat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* === PlayStation Design System Variables === */
+    :root {
+      --ps-cyan: #00f0ff;
+      --ps-pink: #ff2d95;
+      --ps-yellow: #ffff00;
+      --ps-purple: #b44fff;
+      --ps-black: #000000;
+      --ps-dark-surface: #1a1a1a;
+      --ps-text-primary: #ffffff;
+      --ps-text-muted: #a0a0a0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Quicksand', sans-serif;
+      background: var(--ps-black);
+      color: var(--ps-text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    h1 {
+      font-family: 'Quicksand', sans-serif;
+      font-weight: 700;
+      font-size: 28px;
+      letter-spacing: 0.12em;
+      color: var(--ps-cyan);
+      text-shadow: 0 0 10px var(--ps-cyan);
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .subtitle {
+      color: var(--ps-text-muted);
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    /* === Preview Container === */
+    .preview-container {
+      width: 100%;
+      max-width: 1200px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    /* === Component Demo Cards === */
+    .demo-card {
+      background: var(--ps-dark-surface);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      border-radius: 12px;
+      padding: 20px;
+      transition: all 0.3s ease;
+    }
+
+    .demo-card:hover {
+      border-color: var(--ps-cyan);
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .demo-card h2 {
+      font-size: 18px;
+      color: var(--ps-cyan);
+      margin-bottom: 15px;
+      font-weight: 600;
+    }
+
+    /* === Button Styles === */
+    .ps-button {
+      background: rgba(0, 240, 255, 0.1);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      color: var(--ps-cyan);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-family: 'Quicksand', sans-serif;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      letter-spacing: 0.08em;
+      margin: 5px;
+    }
+
+    .ps-button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+      background: rgba(0, 240, 255, 0.2);
+    }
+
+    .ps-button.pink {
+      background: rgba(255, 45, 149, 0.1);
+      border-color: rgba(255, 45, 149, 0.3);
+      color: var(--ps-pink);
+    }
+
+    .ps-button.pink:hover {
+      box-shadow: 0 0 15px rgba(255, 45, 149, 0.4);
+      background: rgba(255, 45, 149, 0.2);
+    }
+
+    /* === HUD Demo === */
+    .hud-demo {
+      position: relative;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      border-radius: 20px;
+      padding: 12px 20px;
+      color: var(--ps-cyan);
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-shadow: 0 0 5px var(--ps-cyan);
+      margin: 10px 0;
+    }
+
+    /* === Color Palette Demo === */
+    .color-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin: 10px 0;
+    }
+
+    .color-swatch {
+      height: 60px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* === Status Popup Demo === */
+    .status-popup {
+      font-family: 'Caveat', cursive;
+      font-size: 28px;
+      color: var(--ps-pink);
+      text-shadow: 0 0 10px var(--ps-pink);
+      padding: 10px 20px;
+      background: rgba(0, 0, 0, 0.6);
+      border-radius: 10px;
+      border: 1px solid rgba(255, 45, 149, 0.3);
+      text-align: center;
+      margin: 10px 0;
+    }
+
+    /* === Typography Demo === */
+    .typography-demo h3 {
+      font-family: 'Quicksand', sans-serif;
+      font-weight: 600;
+      font-size: 14px;
+      letter-spacing: 0.08em;
+      color: var(--ps-text-muted);
+      margin: 15px 0 5px 0;
+    }
+
+    .typography-demo .display-text {
+      font-family: 'Quicksand', sans-serif;
+      font-weight: 700;
+      font-size: 28px;
+      letter-spacing: 0.12em;
+      color: var(--ps-text-primary);
+    }
+
+    .typography-demo .caveat-text {
+      font-family: 'Caveat', cursive;
+      font-weight: 400;
+      font-size: 28px;
+      color: var(--ps-pink);
+    }
+
+    /* === Gate Demo === */
+    .gate-demo {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      margin: 15px 0;
+    }
+
+    .gate {
+      width: 60px;
+      height: 80px;
+      border: 2px solid;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .gate.positive {
+      border-color: var(--ps-yellow);
+      color: var(--ps-yellow);
+      background: rgba(255, 255, 0, 0.1);
+    }
+
+    .gate.multiply {
+      border-color: var(--ps-cyan);
+      color: var(--ps-cyan);
+      background: rgba(0, 240, 255, 0.1);
+    }
+
+    .gate.negative {
+      border-color: var(--ps-pink);
+      color: var(--ps-pink);
+      background: rgba(255, 45, 149, 0.1);
+    }
+
+    /* === Note === */
+    .note {
+      background: rgba(180, 79, 255, 0.1);
+      border: 1px solid rgba(180, 79, 255, 0.3);
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 20px;
+      color: var(--ps-purple);
+      font-size: 14px;
+    }
+
+    .note strong {
+      color: var(--ps-text-primary);
+    }
+  </style>
+</head>
+<body>
+  <h1>🎮 Emoji Crowd Runner</h1>
+  <p class="subtitle">PlayStation Style Design System Preview</p>
+
+  <div class="preview-container">
+    <!-- Color Palette -->
+    <div class="demo-card">
+      <h2>🎨 Color Palette</h2>
+      <div class="color-grid">
+        <div class="color-swatch" style="background: #000000; color: #fff;">Black</div>
+        <div class="color-swatch" style="background: #00f0ff; color: #000;">Cyan</div>
+        <div class="color-swatch" style="background: #ff2d95; color: #fff;">Pink</div>
+        <div class="color-swatch" style="background: #ffff00; color: #000;">Yellow</div>
+        <div class="color-swatch" style="background: #b44fff; color: #fff;">Purple</div>
+        <div class="color-swatch" style="background: #1a1a1a; color: #fff;">Dark</div>
+        <div class="color-swatch" style="background: #ffffff; color: #000;">White</div>
+        <div class="color-swatch" style="background: #a0a0a0; color: #000;">Muted</div>
+      </div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="demo-card">
+      <h2>🔘 Buttons</h2>
+      <div>
+        <button class="ps-button">普通按鈕</button>
+        <button class="ps-button pink">粉紅按鈕</button>
+        <button class="ps-button" disabled style="opacity: 0.5; cursor: not-allowed;">禁用</button>
+      </div>
+      <p style="margin-top: 10px; color: var(--ps-text-muted); font-size: 12px;">
+        Hover 效果：scale(1.05) + glow 增強
+      </p>
+    </div>
+
+    <!-- HUD -->
+    <div class="demo-card">
+      <h2>📊 HUD (Heads-Up Display)</h2>
+      <div class="hud-demo">
+        <span>👥</span>
+        <span>Emoji: 15</span>
+        <span>|</span>
+        <span>🪙</span>
+        <span>Coins: 120</span>
+        <span>|</span>
+        <span>❤️</span>
+        <span>Lives: 3</span>
+      </div>
+      <p style="margin-top: 10px; color: var(--ps-text-muted); font-size: 12px;">
+        Position: top-center, translucent background
+      </p>
+    </div>
+
+    <!-- Status Popup -->
+    <div class="demo-card">
+      <h2>💫 Status Popup</h2>
+      <div class="status-popup">🛒 +5!</div>
+      <div class="status-popup" style="color: var(--ps-cyan); text-shadow: 0 0 10px var(--ps-cyan);">✨ ×2!</div>
+      <div class="status-popup" style="color: var(--ps-pink);">💣 -10!</div>
+    </div>
+
+    <!-- Typography -->
+    <div class="demo-card typography-demo">
+      <h2>🔤 Typography</h2>
+      <h3>Display (Headings)</h3>
+      <div class="display-text">Game Title 123</div>
+      
+      <h3>UI Labels</h3>
+      <div style="color: var(--ps-text-primary); font-size: 14px; letter-spacing: 0.08em;">
+        UI Label Text
+      </div>
+
+      <h3>Status Popup (Caveat)</h3>
+      <div class="caveat-text">+5 Emoji!</div>
+    </div>
+
+    <!-- Gates -->
+    <div class="demo-card">
+      <h2>🚪 Gates</h2>
+      <div class="gate-demo">
+        <div class="gate positive">🛒+5</div>
+        <div class="gate multiply">✨×2</div>
+        <div class="gate negative">💣-10</div>
+      </div>
+      <p style="margin-top: 10px; color: var(--ps-text-muted); font-size: 12px;">
+        門系統：正/負/加倍效果
+      </p>
+    </div>
+
+    <!-- Interaction Effects -->
+    <div class="demo-card">
+      <h2>✨ Glow Effects</h2>
+      <div style="padding: 20px; background: rgba(0, 240, 255, 0.05); border-radius: 8px; text-align: center;">
+        <div style="color: var(--ps-cyan); font-size: 48px; text-shadow: 0 0 20px var(--ps-cyan), 0 0 40px var(--ps-cyan); margin-bottom: 10px;">
+          🎮
+        </div>
+        <p style="color: var(--ps-text-muted); font-size: 12px;">
+          Neon glow effect with multiple shadows
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    <strong>📝 說明：</strong>呢個係 PlayStation 風格設計系統嘅預覽頁面。所有視覺元素都按照 DESIGN.md 嘅規範製作，
+    可以喺整合到遊戲之前先預覽效果。核心遊戲邏輯（main.ts）不會被修改。
+  </div>
+
+  <div style="margin-top: 30px; text-align: center;">
+    <a href="index.html" style="color: var(--ps-cyan); text-decoration: none; font-size: 14px;">
+      ← 返回原版遊戲
+    </a>
+  </div>
+</body>
+</html>
