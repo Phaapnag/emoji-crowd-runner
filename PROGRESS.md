@@ -55,4 +55,5 @@
 - 2026-03-24：補完 Day 1–6 記錄，建立 AI agent 記憶架構
 - 2026-05-08：Codex 接手主線，從 `main` 開 `agent/codex-day7-plus`，完成第一輪 hardening checkpoint：debug 快捷鍵限 dev、移除任意 click/touch reload、防止 restart 保留 saved progress、修正 touch container 座標、減少 production console log。
 - 2026-05-08：驗證 `npm run build` 通過；in-app browser dev 測試 `runGameTests` 5/5 passed；production preview 無 app console log，普通畫面 click 不會 reload。
+- 2026-05-08：第二輪 hardening：battle count overlay 改為一次建立 DOM，battle loop 只更新 `textContent`，減少 `innerHTML` 重建與 DOM query；`npm run build` 通過，production preview smoke test 無 app console log。
 ---

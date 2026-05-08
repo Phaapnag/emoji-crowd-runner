@@ -207,6 +207,48 @@ debugOverlay.style.display = 'none'
 let battleUIInitialized = false
 let battleMyCountEl: HTMLElement | null = null
 let battleEnemyCountEl: HTMLElement | null = null
+let lastBattleMyCount: number | null = null
+let lastBattleEnemyCount: number | null = null
+
+function resetBattleStatusCache() {
+  battleUIInitialized = false
+  battleMyCountEl = null
+  battleEnemyCountEl = null
+  lastBattleMyCount = null
+  lastBattleEnemyCount = null
+}
+
+function setBattleStatusHtml(html: string) {
+  resetBattleStatusCache()
+  battleStatusOverlay.innerHTML = html
+  battleStatusOverlay.style.display = 'block'
+}
+
+function showBattleCounts(myCount: number, enemyCount: number) {
+  if (!battleUIInitialized) {
+    battleStatusOverlay.innerHTML = `
+      <div class="count-row">
+        <span id="battle-my-count" class="count friend"></span>
+        <span class="vs-text">VS</span>
+        <span id="battle-enemy-count" class="count enemy"></span>
+      </div>
+    `
+    battleMyCountEl = document.getElementById('battle-my-count')
+    battleEnemyCountEl = document.getElementById('battle-enemy-count')
+    battleStatusOverlay.style.display = 'block'
+    battleUIInitialized = true
+  }
+
+  if (battleMyCountEl && myCount !== lastBattleMyCount) {
+    battleMyCountEl.textContent = `👥 ${myCount} 人`
+    lastBattleMyCount = myCount
+  }
+
+  if (battleEnemyCountEl && enemyCount !== lastBattleEnemyCount) {
+    battleEnemyCountEl.textContent = `💀 ${enemyCount} 敵`
+    lastBattleEnemyCount = enemyCount
+  }
+}
 
 // Input handling
 let inputLeft = false
@@ -511,8 +553,7 @@ function showGameOverScreen() {
     <div class="restart-hint" style="margin-top: 16px; font-size: 12px; opacity: 0.7;">按 Tab 或使用「重新開始」</div>
   `
   
-  battleStatusOverlay.innerHTML = html
-  battleStatusOverlay.style.display = 'block'
+  setBattleStatusHtml(html)
   
   // Button event listeners
   const reviveCoinsBtn = document.getElementById('revive-coins-btn')
@@ -748,8 +789,7 @@ function showWinScreen(runCoins: number) {
     <div class="restart-hint" style="margin-top: 16px; font-size: 12px; opacity: 0.7;">按 Tab 或使用「重新開始」</div>
   `
   
-  battleStatusOverlay.innerHTML = html
-  battleStatusOverlay.style.display = 'block'
+  setBattleStatusHtml(html)
   
   // Button event listener
   const doubleCoinsBtn = document.getElementById('double-coins-btn')
@@ -955,15 +995,7 @@ function animate() {
           battleOverlay.style.display = 'none'
         }
         
-        // Show battle status at BOTTOM with neon styling - compact layout
-        battleStatusOverlay.innerHTML = `
-          <div class="count-row">
-            <span class="count friend">👥 ${myCount} 人</span>
-            <span class="vs-text">VS</span>
-            <span class="count enemy">💀 ${enemyCount} 敵</span>
-          </div>
-        `
-        battleStatusOverlay.style.display = 'block'
+        showBattleCounts(myCount, enemyCount)
         
         scoreEl.textContent = `⚔️ BOSS戰!`
         break
@@ -975,15 +1007,7 @@ function animate() {
         battleOverlay.style.bottom = 'auto'
         battleOverlay.style.display = 'block'
         
-        // Show battle status at BOTTOM with neon styling - compact layout
-        battleStatusOverlay.innerHTML = `
-          <div class="count-row">
-            <span class="count friend">👥 ${myCount} 人</span>
-            <span class="vs-text">VS</span>
-            <span class="count enemy">💀 ${enemyCount} 敵</span>
-          </div>
-        `
-        battleStatusOverlay.style.display = 'block'
+        showBattleCounts(myCount, enemyCount)
         
         battleTimer++
         scoreEl.textContent = ``
@@ -993,17 +1017,7 @@ function animate() {
         // Hide instruction overlay
         battleOverlay.style.display = 'none'
         
-        // Set up HTML structure ONCE when entering charging state - compact layout
-        if (battleTimer === 0) {
-          battleStatusOverlay.innerHTML = `
-            <div class="count-row">
-              <span id="battle-my-count" class="count friend">👥 ${myCount} 人</span>
-              <span class="vs-text">VS</span>
-              <span id="battle-enemy-count" class="count enemy">💀 ${enemyCount} 敵</span>
-            </div>
-          `
-          battleStatusOverlay.style.display = 'block'
-        }
+        showBattleCounts(myCount, enemyCount)
         
         battleTimer++
         
@@ -1038,17 +1052,7 @@ function animate() {
           const newMyCount = crowdManager.getRemainingCount()
           const newEnemyCount = enemyCrowd.getCount()
           
-          // Update only the numbers with neon styling
-          const myCountEl = document.getElementById('battle-my-count')
-          const enemyCountEl = document.getElementById('battle-enemy-count')
-          if (myCountEl) {
-            myCountEl.textContent = `👥 ${newMyCount} 人`
-            myCountEl.className = 'count friend'
-          }
-          if (enemyCountEl) {
-            enemyCountEl.textContent = `💀 ${newEnemyCount} 敵`
-            enemyCountEl.className = 'count enemy'
-          }
+          showBattleCounts(newMyCount, newEnemyCount)
           
           scoreEl.textContent = `⚔️ 決戰! 👥${newMyCount} vs 💀${newEnemyCount}`
           
@@ -1087,11 +1091,11 @@ function animate() {
               // Show wave complete, continue
               const nextWave = currentWave + 1
               const nextEnemyCount = ENEMY_COUNT_PER_WAVE[nextWave - 1]
-              battleStatusOverlay.innerHTML = `
+              setBattleStatusHtml(`
                 <div class="result win" style="font-size: 32px;">🏆 第${currentWave}關完成!</div>
                 <div class="count friend" style="font-size: 18px; margin-top: 8px;">存活: ${newMyCount} 人</div>
                 <div style="font-size: 14px; color: #aaa; margin-top: 8px;">下一關: ${nextEnemyCount} 敵人...</div>
-              `
+              `)
             }
           }
         }

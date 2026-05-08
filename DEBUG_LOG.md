@@ -148,6 +148,15 @@ if (!resizeInitialized) {
 
 ---
 
+## [Day 7] Battle UI 每幀重建 DOM
+**症狀**：進入 boss battle 的 slowing / waiting / charging 狀態時，battle count overlay 會反覆用 `innerHTML` 重建，charging clash 亦每次重新 query DOM。
+**根因**：battle UI 顯示邏輯直接寫在 state machine 入面，沒有 cache 已建立的 count DOM node。
+**解決**：新增 battle status helper，count row 只在需要時建立一次；每幀只在數值改變時更新 `textContent`，結果畫面再重設 cache。
+**相關檔案**：main.ts
+**Tag**：#performance #battle-ui #dom #mobile
+
+---
+
 ## 常見 Three.js 陷阱（預設提醒）
 
 - ⚠️ `InstancedMesh` 更新後必須設 `instanceMatrix.needsUpdate = true`
