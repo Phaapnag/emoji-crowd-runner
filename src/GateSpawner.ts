@@ -140,7 +140,6 @@ export class GateSpawner {
     // Recycle gates behind player
     for (const gate of this.gates) {
       if (gate.active && gate.z > playerZ + 20) {
-        console.log('[GateSpawner] Recycling gate at z:', gate.z)
         gate.active = false
         gate.triggered = false
         gate.mesh.visible = false

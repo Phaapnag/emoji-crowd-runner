@@ -130,6 +130,33 @@ if (!resizeInitialized) {
 
 ---
 
+## [Day 7] Game Over / Win 重開流程防誤觸
+**症狀**：Game Over / Win 畫面可由任意 click/touch 觸發 reload，手機容易誤觸；production preview 中 restart 後可能因 saved progress 留存而返到敗北狀態。
+**根因**：全域 click listener 直接呼叫 `handleRestart()`，touchstart 在 game over / completed 狀態直接 `location.reload()`；restart 未清除 wave progress。
+**解決**：移除任意 click/touch reload，只保留明確「重新開始」按鈕與 Tab；restart 前呼叫 `gameState.reset(true)` 清 saved progress。
+**相關檔案**：main.ts
+**Tag**：#restart #touch #gamestate #mobile
+
+---
+
+## [Day 7] Debug 快捷鍵與 production console log 噪音
+**症狀**：測試快捷鍵（T/C/1-9/0）與多個 debug log 可能影響 production 體驗；Gate recycle 與 rewarded callback 會輸出不必要 console log。
+**根因**：debug 行為未用 Vite dev mode gate；測試與診斷 log 直接呼叫 `console.log()`。
+**解決**：加入 `IS_DEV = import.meta.env.DEV` 與 `debugLog()`，限制 debug 快捷鍵、window 測試入口及診斷 log 只在 dev 執行；移除 production 不必要 log，保留 warn/error。
+**相關檔案**：main.ts, GateSpawner.ts, GameState.ts
+**Tag**：#debug #production #vite #console
+
+---
+
+## [Day 7] Battle UI 每幀重建 DOM
+**症狀**：進入 boss battle 的 slowing / waiting / charging 狀態時，battle count overlay 會反覆用 `innerHTML` 重建，charging clash 亦每次重新 query DOM。
+**根因**：battle UI 顯示邏輯直接寫在 state machine 入面，沒有 cache 已建立的 count DOM node。
+**解決**：新增 battle status helper，count row 只在需要時建立一次；每幀只在數值改變時更新 `textContent`，結果畫面再重設 cache。
+**相關檔案**：main.ts
+**Tag**：#performance #battle-ui #dom #mobile
+
+---
+
 ## 常見 Three.js 陷阱（預設提醒）
 
 - ⚠️ `InstancedMesh` 更新後必須設 `instanceMatrix.needsUpdate = true`

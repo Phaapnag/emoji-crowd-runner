@@ -193,7 +193,6 @@ export class GameState {
   rewardedRevive(): void {
     // TODO: Replace with actual Ad SDK call
     // Ad SDK would call this after ad completes
-    console.log('[GameState] Rewarded revive triggered')
     this.revive()
   }
 
@@ -204,7 +203,6 @@ export class GameState {
    */
   rewardedDoubleCoins(runCoins: number): void {
     // TODO: Replace with actual Ad SDK call
-    console.log('[GameState] Rewarded double coins triggered')
     this.addCoins(runCoins)
   }
 
