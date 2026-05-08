@@ -1,9 +1,6 @@
-// Gate tuning test - testing preview build
-console.log('[GateTuning] Preview build test v16-DebugKeys')
+/// <reference types="vite/client" />
 
 import * as THREE from 'three'
-// Gate tuning test - testing preview build
-console.log('[GateTuning] Preview build test')
 import { Player } from './Player'
 import { RoadSpawner } from './RoadSpawner'
 import { LevelSpawner } from './LevelSpawner'
@@ -13,6 +10,13 @@ import { EnemyCrowd } from './EnemyCrowd'
 import { UIManager } from './UIManager'
 import { GameState } from './GameState'
 import './ui.css'
+
+const IS_DEV = import.meta.env.DEV
+const debugLog = (...args: unknown[]) => {
+  if (IS_DEV) {
+    console.log(...args)
+  }
+}
 
 // Scene setup
 const scene = new THREE.Scene()
@@ -102,8 +106,7 @@ const enemyCrowd = new EnemyCrowd(scene)
 // Day 7: GameState - Central state management
 const gameState = new GameState()
 
-// DEBUG: Log gameState to see what's being loaded
-console.log('[DEBUG] gameState after init:', {
+debugLog('[DEBUG] gameState after init:', {
   hasSavedProgress: gameState.hasSavedProgress(),
   currentWave: gameState.currentWave,
   savedDistance: gameState.savedDistance,
@@ -129,15 +132,11 @@ let gameOver = false
 let gameWon = false
 let gameCompleted = false // After wave 8
 
-// DEBUG: Force reset game state to ensure fresh start
-console.log('[DEBUG] gameOver initial:', gameOver)
-console.log('[DEBUG] gameCompleted initial:', gameCompleted)
-
 // Force set gameOver to false to prevent stale state
 gameOver = false
 gameWon = false
 gameCompleted = false
-console.log('[DEBUG] After force reset, gameOver:', gameOver)
+debugLog('[DEBUG] After force reset, gameOver:', gameOver)
 
 // Wave/Level system
 // Day 7: Load saved wave or start from 1
@@ -151,7 +150,7 @@ const savedCrowdCount = gameState.hasSavedProgress() ? gameState.crowdCount : 50
 // If we have saved progress, use it to set initial distance
 if (savedDistance > 0) {
   distance = savedDistance
-  console.log(`[Game] Continuing from wave ${currentWave}, distance ${distance.toFixed(1)}`)
+  debugLog(`[Game] Continuing from wave ${currentWave}, distance ${distance.toFixed(1)}`)
 }
 
 // Enemy count per wave: 30, 40, 50, 60, 70, 80, 90, 100
@@ -217,6 +216,7 @@ let inputRight = false
 function handleRestart() {
   // Only handle restart for game over/complete, not wave wins
   if (gameOver || gameCompleted) {
+    gameState.reset(true)
     location.reload()
   }
 }
@@ -228,8 +228,6 @@ function handleHome() {
   location.reload()
 }
 
-document.addEventListener('click', handleRestart)
-
 // Home button click handler (event delegation)
 document.addEventListener('click', (e) => {
   const target = e.target as HTMLElement
@@ -239,47 +237,44 @@ document.addEventListener('click', (e) => {
 })
 
 document.addEventListener('keydown', (e) => {
-  // DEBUG: Log all key presses
-  console.log('[DEBUG] Key pressed:', e.key)
-  
   // Press T to run tests (debug mode)
-  if (e.key === 't' || e.key === 'T') {
+  if (IS_DEV && (e.key === 't' || e.key === 'T')) {
     console.log('\n🚀 Running Day 7 Tests...\n')
     runGameTests()
     return
   }
   
   // Press C to add coins (debug mode)
-  if ((e.key === 'c' || e.key === 'C') && !gameOver) {
+  if (IS_DEV && (e.key === 'c' || e.key === 'C') && !gameOver) {
     gameState.addCoins(100)
-    console.log(`[DEBUG] Added 100 coins! Total: ${gameState.coins}`)
+    debugLog(`[DEBUG] Added 100 coins! Total: ${gameState.coins}`)
     return
   }
   
   // Press 1-8 to jump to that wave (debug mode)
   const waveNum = parseInt(e.key)
-  if (waveNum >= 1 && waveNum <= 8 && !gameOver && !inEndZone) {
+  if (IS_DEV && waveNum >= 1 && waveNum <= 8 && !gameOver && !inEndZone) {
     const WAVE_DISTANCE = 900
     const targetDistance = (waveNum - 1) * WAVE_DISTANCE
     distance = targetDistance
     currentWave = waveNum
     nextWaveDistance = targetDistance + WAVE_DISTANCE
     crowdManager.rebuild(5) // Give 5 crowd for testing
-    console.log(`[DEBUG] Jumped to Wave ${waveNum}! Distance: ${distance}`)
+    debugLog(`[DEBUG] Jumped to Wave ${waveNum}! Distance: ${distance}`)
     return
   }
   
   // Press 0 to set crowd to 0 (for testing revive bug)
-  if (e.key === '0' && !gameOver) {
+  if (IS_DEV && e.key === '0' && !gameOver) {
     crowdManager.rebuild(0)
-    console.log(`[DEBUG] Set crowd to 0!`)
+    debugLog(`[DEBUG] Set crowd to 0!`)
     return
   }
   
   // Press 9 to set crowd to 1 (minimum to prevent halt)
-  if (e.key === '9' && !gameOver) {
+  if (IS_DEV && e.key === '9' && !gameOver) {
     crowdManager.rebuild(1)
-    console.log(`[DEBUG] Set crowd to 1!`)
+    debugLog(`[DEBUG] Set crowd to 1!`)
     return
   }
   
@@ -335,10 +330,7 @@ let touchStartY = 0
 let touchStartX = 0
 
 document.addEventListener('touchstart', (e) => {
-  if (gameOver || gameCompleted) {
-    location.reload()
-    return
-  }
+  if (gameOver || gameCompleted) return
   
   touchStartY = e.touches[0].clientY
   touchStartX = e.touches[0].clientX
@@ -379,12 +371,14 @@ document.addEventListener('touchcancel', () => {
 })
 
 function handleTouch(touchX: number) {
-  const screenWidth = window.innerWidth
-  
-  if (touchX < screenWidth * 0.4) {
+  const rect = gameContainer.getBoundingClientRect()
+  const relativeX = touchX - rect.left
+  const containerWidth = rect.width
+
+  if (relativeX < containerWidth * 0.4) {
     inputLeft = true
     inputRight = false
-  } else if (touchX > screenWidth * 0.6) {
+  } else if (relativeX > containerWidth * 0.6) {
     inputRight = true
     inputLeft = false
   } else {
@@ -491,6 +485,18 @@ function showGameOverScreen() {
       margin: 8px 0;
       width: 80%;
     ">📺 免費復活</button>
+    <button id="restart-btn" class="reward-btn restart" style="
+      background: linear-gradient(135deg, #64748b, #475569);
+      border: none;
+      padding: 10px 24px;
+      border-radius: 12px;
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin: 8px 0;
+      width: 80%;
+    ">🔄 重新開始</button>
     <div id="debug-add-coins" style="display: none; margin-top: 8px;">
       <button id="debug-coins-btn" style="
         background: #ef4444;
@@ -502,7 +508,7 @@ function showGameOverScreen() {
         cursor: pointer;
       ">🔧 +100 金幣</button>
     </div>
-    <div class="restart-hint" style="margin-top: 16px; font-size: 12px; opacity: 0.7;">👆 Click 任意位置 / Tab 重新開始</div>
+    <div class="restart-hint" style="margin-top: 16px; font-size: 12px; opacity: 0.7;">按 Tab 或使用「重新開始」</div>
   `
   
   battleStatusOverlay.innerHTML = html
@@ -542,9 +548,17 @@ function showGameOverScreen() {
     debugCoinsBtn.addEventListener('click', (e) => {
       e.stopPropagation()
       gameState.addCoins(100)
-      console.log(`[DEBUG] Added 100 coins! Total: ${gameState.coins}`)
+      debugLog(`[DEBUG] Added 100 coins! Total: ${gameState.coins}`)
       // Refresh the game over screen to show coin revive button
       showGameOverScreen()
+    })
+  }
+
+  const restartBtn = document.getElementById('restart-btn')
+  if (restartBtn) {
+    restartBtn.addEventListener('click', (e) => {
+      e.stopPropagation()
+      handleRestart()
     })
   }
 }
@@ -575,17 +589,17 @@ function performRevive() {
     // Restart from wave beginning
     reviveDistance = waveStartDistance
     restartWave = currentWave
-    console.log(`[Game] Revive: ${isBossWave ? 'BOSS wave' : 'Distance > 50%'}, restarting wave ${currentWave} from ${reviveDistance}`)
+    debugLog(`[Game] Revive: ${isBossWave ? 'BOSS wave' : 'Distance > 50%'}, restarting wave ${currentWave} from ${reviveDistance}`)
   } else if (failedWave > 0) {
     // Battle failed - restart from that wave's beginning
     reviveDistance = failedWave * WAVE_DISTANCE
     restartWave = failedWave
-    console.log(`[Game] Battle failed! Restarting wave ${failedWave} from distance ${reviveDistance}`)
+    debugLog(`[Game] Battle failed! Restarting wave ${failedWave} from distance ${reviveDistance}`)
     failedWave = 0
   } else {
     // Normal continue - from where died
     reviveDistance = distance
-    console.log(`[Game] Revived at distance ${reviveDistance.toFixed(1)}, wave ${currentWave} continues`)
+    debugLog(`[Game] Revived at distance ${reviveDistance.toFixed(1)}, wave ${currentWave} continues`)
   }
   
   // Save current position before resetting
@@ -638,10 +652,10 @@ function performRevive() {
   if (currentCrowd === 0) {
     // At least give 1 crowd member to avoid halt
     crowdManager.rebuild(1)
-    console.log('[Game] Revive: Granted 1 crowd member to prevent halt')
+    debugLog('[Game] Revive: Granted 1 crowd member to prevent halt')
   }
   
-  console.log('[Game] Revived! Has revived:', gameState.hasRevived, 'at position', currentX, currentZ)
+  debugLog('[Game] Revived! Has revived:', gameState.hasRevived, 'at position', currentX, currentZ)
 }
 
 // ============== DAY 7 TEST SUITE ==============
@@ -698,8 +712,9 @@ function runGameTests() {
   console.log('========================================\n')
 }
 
-// Expose for console
-;(window as any).runGameTests = runGameTests
+if (IS_DEV) {
+  ;(window as any).runGameTests = runGameTests
+}
 
 // Day 7: Win/Complete Screen with Double Coins Option
 function showWinScreen(runCoins: number) {
@@ -718,7 +733,19 @@ function showWinScreen(runCoins: number) {
       margin: 8px 0;
       width: 80%;
     ">📺 免費 x2 金幣</button>
-    <div class="restart-hint" style="margin-top: 16px; font-size: 12px; opacity: 0.7;">👆 Click / Tab 重新開始</div>
+    <button id="restart-btn-win" class="reward-btn restart" style="
+      background: linear-gradient(135deg, #64748b, #475569);
+      border: none;
+      padding: 10px 24px;
+      border-radius: 12px;
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin: 8px 0;
+      width: 80%;
+    ">🔄 重新開始</button>
+    <div class="restart-hint" style="margin-top: 16px; font-size: 12px; opacity: 0.7;">按 Tab 或使用「重新開始」</div>
   `
   
   battleStatusOverlay.innerHTML = html
@@ -737,6 +764,14 @@ function showWinScreen(runCoins: number) {
       totalDisplay.textContent = `總金幣: 🪙 ${gameState.totalCoins}`
       doubleCoinsBtn.parentNode?.appendChild(totalDisplay)
       doubleCoinsBtn.style.display = 'none'
+    })
+  }
+
+  const restartWinBtn = document.getElementById('restart-btn-win')
+  if (restartWinBtn) {
+    restartWinBtn.addEventListener('click', (e) => {
+      e.stopPropagation()
+      handleRestart()
     })
   }
 }
@@ -835,7 +870,7 @@ function animate() {
   const currentCrowd = crowdManager.getRemainingCount()
   if (!endZoneTriggered && distance >= triggerDistance - 50 && currentCrowd === 0 && currentWave < MAX_WAVES) {
     // Can't enter battle with 0 crowd - restart from wave start
-    console.log('[Game] Blocked battle entry: crowd = 0, restarting wave')
+    debugLog('[Game] Blocked battle entry: crowd = 0, restarting wave')
     distance = (currentWave - 1) * 900
     nextWaveDistance = currentWave * 900
     // Give minimum crowd to continue
@@ -854,7 +889,7 @@ function animate() {
     // Day 7 Fix: Record initial battle counts for tie handling
     battleInitialMyCount = crowdManager.getRemainingCount()
     battleInitialEnemyCount = ENEMY_COUNT_PER_WAVE[currentWave - 1]
-    console.log(`[Battle] Wave ${currentWave}: My ${battleInitialMyCount} vs Enemy ${battleInitialEnemyCount}`)
+    debugLog(`[Battle] Wave ${currentWave}: My ${battleInitialMyCount} vs Enemy ${battleInitialEnemyCount}`)
     
     // Day 6: Show battle warning popup
     uiManager.showBattleWarning()
